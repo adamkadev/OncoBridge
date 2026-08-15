@@ -36,6 +36,12 @@ dotnet_diagnostic.CS8602.severity = error
 dotnet_diagnostic.CS8603.severity = error
 dotnet_diagnostic.CS8625.severity = error
 
+# EF Core scaffolds these. Treating them as generated keeps `dotnet ef migrations add` output
+# building unmodified, so generated migrations never need hand-editing to satisfy style rules.
+[**/Persistence/Migrations/*.cs]
+generated_code = true
+dotnet_diagnostic.IDE0161.severity = none
+
 [*.{csproj,props,targets,slnx}]
 indent_size = 2
 

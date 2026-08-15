@@ -3,8 +3,11 @@
 **This directory contains synthetic and public data only. Real patient data must never be added
 here, or anywhere else in this repository.**
 
-Empty in Phase 1 — the domain foundation needs no fixtures, because it has no FHIR ingestion yet.
-Fixtures arrive with P2/P3.
+## Contents
+
+| Directory | Phase | Contents |
+|---|---|---|
+| [`phase2/`](phase2/) | P2 | `bundle-minimal.json` — a four-entry FHIR R4 Bundle used to prove ingestion, byte-exact payload storage and `jsonb` round-tripping. Hand-authored; see [`phase2/README.md`](phase2/README.md). |
 
 ## Rules
 

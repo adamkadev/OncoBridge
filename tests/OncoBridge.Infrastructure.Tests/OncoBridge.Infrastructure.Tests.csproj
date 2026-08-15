@@ -13,9 +13,11 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../src/OncoBridge.Infrastructure/OncoBridge.Infrastructure.csproj" />
     <ProjectReference Include="../../src/OncoBridge.Interop.Fhir/OncoBridge.Interop.Fhir.csproj" />
   </ItemGroup>
 

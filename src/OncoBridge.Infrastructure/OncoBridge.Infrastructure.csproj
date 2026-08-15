@@ -1,10 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- EF Core / Npgsql arrive in P2. Nothing persistence-related exists yet. -->
-
   <ItemGroup>
     <ProjectReference Include="../OncoBridge.Domain/OncoBridge.Domain.csproj" />
     <ProjectReference Include="../OncoBridge.Application/OncoBridge.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pinned explicitly so the whole graph unifies on one EF Core version. The Npgsql provider
+         depends on an older patch, and Design is PrivateAssets=all, so without this the API project
+         resolves a different EF Core than Infrastructure was compiled against. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

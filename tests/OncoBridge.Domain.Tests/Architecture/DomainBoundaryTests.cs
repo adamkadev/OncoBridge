@@ -4,64 +4,57 @@ using OncoBridge.Domain.Temporal;
 
 namespace OncoBridge.Domain.Tests.Architecture;
 
-/// <summary>
-/// Makes the central architectural boundary executable (ADR-0001, ADR-0007).
-/// </summary>
-/// <remarks>
-/// <para>
-/// The whole project rests on one claim: the canonical domain is independent of the interchange
-/// format. A boundary defended only by discipline is a boundary that has already been crossed, so
-/// it is asserted here instead of in a code review.
-/// </para>
-/// <para>
-/// <b>Two complementary checks, because either alone has a hole.</b> Reading the real
-/// <c>.csproj</c> files catches a forbidden reference the moment it is declared, even before any
-/// code uses it — which matters because the compiler omits unused references from assembly
-/// metadata, so a declared-but-unused package would be invisible to reflection. Reading the loaded
-/// assembly's reference graph catches anything that reaches the domain by a route the project file
-/// does not spell out. Together they keep working once later phases actually add these packages.
-/// </para>
-/// </remarks>
 public sealed class DomainBoundaryTests
 {
-    /// <summary>
-    /// Packages that must never reach the domain. Matched case-insensitively as name prefixes.
-    /// </summary>
-    private static readonly string[] ForbiddenReferencePrefixes =
-    [
-        "Hl7.Fhir",
-        "Microsoft.EntityFrameworkCore",
-        "Npgsql",
-        "Microsoft.AspNetCore",
-    ];
+    private const string Fhir = "Hl7.Fhir";
+    private const string EfCore = "Microsoft.EntityFrameworkCore";
+    private const string Npgsql = "Npgsql";
+    private const string AspNetCore = "Microsoft.AspNetCore";
 
     private static string RepoRoot { get; } = ResolveRepoRoot();
 
-    [Fact]
-    public void Domain_project_declares_no_package_references()
+    public static TheoryData<string, string[]> ForbiddenProductionReferences => new()
     {
-        XDocument project = LoadProject("src/OncoBridge.Domain/OncoBridge.Domain.csproj");
+        { "OncoBridge.Domain", [Fhir, EfCore, Npgsql, AspNetCore] },
+        { "OncoBridge.Application", [Fhir, EfCore, Npgsql] },
+        { "OncoBridge.Interop.Fhir", [EfCore, Npgsql] },
+        { "OncoBridge.Infrastructure", [Fhir] },
+    };
 
-        string[] packages = project
-            .Descendants("PackageReference")
-            .Select(e => e.Attribute("Include")?.Value ?? "(unnamed)")
-            .ToArray();
+    [Theory]
+    [MemberData(nameof(ForbiddenProductionReferences))]
+    public void A_production_project_declares_no_forbidden_package(string project, string[] forbidden)
+    {
+        string[] offenders =
+        [
+            .. PackageReferencesOf(project).Where(name => StartsWithAny(name, forbidden)),
+        ];
 
         Assert.True(
-            packages.Length == 0,
-            $"OncoBridge.Domain must have zero package references, but declares: "
-                + $"{string.Join(", ", packages)}.");
+            offenders.Length == 0,
+            $"{project} must not reference {string.Join(" / ", forbidden)}, but declares: "
+                + $"{string.Join(", ", offenders)}.");
     }
 
     [Fact]
-    public void Domain_project_declares_no_project_references()
+    public void Domain_declares_no_package_references_at_all()
     {
-        XDocument project = LoadProject("src/OncoBridge.Domain/OncoBridge.Domain.csproj");
+        string[] packages = [.. PackageReferencesOf("OncoBridge.Domain")];
 
-        string[] references = project
-            .Descendants("ProjectReference")
-            .Select(e => e.Attribute("Include")?.Value ?? "(unnamed)")
-            .ToArray();
+        Assert.True(
+            packages.Length == 0,
+            $"OncoBridge.Domain must have zero package references, but declares: {string.Join(", ", packages)}.");
+    }
+
+    [Fact]
+    public void Domain_declares_no_project_references_at_all()
+    {
+        string[] references =
+        [
+            .. LoadProject("OncoBridge.Domain")
+                .Descendants("ProjectReference")
+                .Select(element => element.Attribute("Include")?.Value ?? "(unnamed)"),
+        ];
 
         Assert.True(
             references.Length == 0,
@@ -70,115 +63,106 @@ public sealed class DomainBoundaryTests
     }
 
     [Fact]
-    public void Domain_assembly_does_not_reference_forbidden_frameworks()
+    public void The_compiled_domain_assembly_references_nothing_forbidden()
     {
-        Assembly domain = typeof(PartialDate).Assembly;
-
-        string[] offenders = domain
-            .GetReferencedAssemblies()
-            .Select(a => a.Name ?? string.Empty)
-            .Where(IsForbidden)
-            .ToArray();
+        string[] offenders =
+        [
+            .. typeof(PartialDate).Assembly
+                .GetReferencedAssemblies()
+                .Select(assembly => assembly.Name ?? string.Empty)
+                .Where(name => StartsWithAny(name, [Fhir, EfCore, Npgsql, AspNetCore])),
+        ];
 
         Assert.True(
             offenders.Length == 0,
-            $"OncoBridge.Domain must not reference {string.Join(" / ", ForbiddenReferencePrefixes)}, "
+            $"OncoBridge.Domain must not reference FHIR, EF Core, Npgsql or ASP.NET Core, "
                 + $"but references: {string.Join(", ", offenders)}.");
     }
 
-    /// <summary>
-    /// Enforces the rule that <c>OncoBridge.Interop.Fhir</c> is the only production project allowed
-    /// to reference the FHIR SDK.
-    /// </summary>
-    /// <remarks>
-    /// This currently passes trivially, because no project references a FHIR package yet — that is
-    /// itself Phase 1 gate item 7. It is written now so the constraint is already in force when P3
-    /// adds the SDK, rather than being remembered afterwards.
-    /// </remarks>
     [Fact]
-    public void Only_Interop_Fhir_may_reference_the_FHIR_SDK()
+    public void Interop_Fhir_is_the_only_production_project_referencing_the_FHIR_SDK()
     {
-        List<string> offenders = [];
-
-        foreach (string projectPath in ProductionProjects())
-        {
-            string projectName = Path.GetFileNameWithoutExtension(projectPath);
-            if (projectName == "OncoBridge.Interop.Fhir")
-            {
-                continue;
-            }
-
-            bool referencesFhir = XDocument.Load(projectPath)
-                .Descendants("PackageReference")
-                .Select(e => e.Attribute("Include")?.Value ?? string.Empty)
-                .Any(name => name.StartsWith("Hl7.Fhir", StringComparison.OrdinalIgnoreCase));
-
-            if (referencesFhir)
-            {
-                offenders.Add(projectName);
-            }
-        }
+        string[] offenders =
+        [
+            .. ProductionProjectNames()
+                .Where(project => project != "OncoBridge.Interop.Fhir")
+                .Where(project => PackageReferencesOf(project).Any(name => StartsWithAny(name, [Fhir]))),
+        ];
 
         Assert.True(
-            offenders.Count == 0,
-            $"Only OncoBridge.Interop.Fhir may reference Hl7.Fhir.*, but so do: "
+            offenders.Length == 0,
+            $"Only OncoBridge.Interop.Fhir may reference {Fhir}.*, but so do: {string.Join(", ", offenders)}.");
+    }
+
+    [Fact]
+    public void Infrastructure_is_the_only_production_project_referencing_EF_Core_or_Npgsql()
+    {
+        string[] offenders =
+        [
+            .. ProductionProjectNames()
+                .Where(project => project != "OncoBridge.Infrastructure")
+                .Where(project => PackageReferencesOf(project).Any(name => StartsWithAny(name, [EfCore, Npgsql]))),
+        ];
+
+        Assert.True(
+            offenders.Length == 0,
+            $"Only OncoBridge.Infrastructure may reference EF Core or Npgsql, but so do: "
                 + $"{string.Join(", ", offenders)}.");
     }
 
-    /// <summary>
-    /// Phase 1 gate items 7 and 8: no FHIR, EF Core or Npgsql package is referenced anywhere yet.
-    /// </summary>
-    /// <remarks>
-    /// Unlike the other tests here, this one is expected to be <i>deleted</i> — P2 adds EF Core and
-    /// P3 adds the FHIR SDK, and this test should fail then. It exists so that Phase 1's "not yet"
-    /// scope is asserted rather than assumed, and removing it is a deliberate act recorded in the
-    /// phase that does so.
-    /// </remarks>
     [Fact]
-    public void Phase1_has_no_persistence_or_FHIR_packages_anywhere()
+    public void Interop_Fhir_does_not_reference_Infrastructure()
     {
-        List<string> offenders = [];
+        string[] references =
+        [
+            .. LoadProject("OncoBridge.Interop.Fhir")
+                .Descendants("ProjectReference")
+                .Select(element => element.Attribute("Include")?.Value ?? string.Empty)
+                .Where(include => include.Contains("Infrastructure", StringComparison.Ordinal)),
+        ];
 
-        foreach (string projectPath in ProductionProjects())
-        {
-            IEnumerable<string> packages = XDocument.Load(projectPath)
-                .Descendants("PackageReference")
-                .Select(e => e.Attribute("Include")?.Value ?? string.Empty)
-                .Where(IsForbidden);
+        Assert.Empty(references);
+    }
 
-            offenders.AddRange(
-                packages.Select(p => $"{Path.GetFileNameWithoutExtension(projectPath)} -> {p}"));
-        }
+    [Fact]
+    public void Api_has_not_started_and_references_no_web_packages()
+    {
+        string[] offenders =
+        [
+            .. PackageReferencesOf("OncoBridge.Api").Where(name => StartsWithAny(name, [AspNetCore])),
+        ];
 
         Assert.True(
-            offenders.Count == 0,
-            "Phase 1 declares no FHIR, EF Core or Npgsql packages in any production project, "
-                + $"but found: {string.Join(", ", offenders)}. "
-                + "If this failure is the intended start of P2 or P3, delete this test as part of that phase.");
+            offenders.Length == 0,
+            $"OncoBridge.Api holds no implementation until P5, but declares: {string.Join(", ", offenders)}.");
     }
 
-    private static bool IsForbidden(string name) =>
-        ForbiddenReferencePrefixes.Any(p => name.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+    private static bool StartsWithAny(string name, IEnumerable<string> prefixes) =>
+        prefixes.Any(prefix => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
-    private static IEnumerable<string> ProductionProjects() =>
-        Directory.EnumerateFiles(Path.Combine(RepoRoot, "src"), "*.csproj", SearchOption.AllDirectories);
+    private static IEnumerable<string> PackageReferencesOf(string project) =>
+        LoadProject(project)
+            .Descendants("PackageReference")
+            .Select(element => element.Attribute("Include")?.Value ?? "(unnamed)");
 
-    private static XDocument LoadProject(string relativePath)
+    private static IEnumerable<string> ProductionProjectNames() =>
+        Directory
+            .EnumerateFiles(Path.Combine(RepoRoot, "src"), "*.csproj", SearchOption.AllDirectories)
+            .Select(Path.GetFileNameWithoutExtension)
+            .OfType<string>();
+
+    private static XDocument LoadProject(string project)
     {
-        string fullPath = Path.Combine(RepoRoot, relativePath);
-        Assert.True(File.Exists(fullPath), $"Expected project file at '{fullPath}'.");
-        return XDocument.Load(fullPath);
+        string path = Path.Combine(RepoRoot, "src", project, $"{project}.csproj");
+        Assert.True(File.Exists(path), $"Expected project file at '{path}'.");
+        return XDocument.Load(path);
     }
 
-    /// <summary>
-    /// Resolves the repository root from an MSBuild-supplied assembly attribute rather than by
-    /// walking up from the output directory, so the test behaves identically locally and in CI.
-    /// </summary>
     private static string ResolveRepoRoot()
     {
         string? value = typeof(DomainBoundaryTests).Assembly
             .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .SingleOrDefault(a => a.Key == "RepoRoot")
+            .SingleOrDefault(attribute => attribute.Key == "RepoRoot")
             ?.Value;
 
         Assert.False(

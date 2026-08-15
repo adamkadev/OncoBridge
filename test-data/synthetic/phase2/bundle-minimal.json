@@ -1,0 +1,49 @@
+{
+    "resourceType": "Bundle",
+    "type": "collection",
+    "id": "oncobridge-phase2-minimal",
+    "entry": [
+        {
+            "fullUrl": "urn:uuid:11111111-1111-4111-8111-111111111111",
+            "resource": {
+                "resourceType": "Patient",
+                "id": "patient-001",
+                "gender": "female",
+                "birthDate": "1968",
+                "identifier": [ { "system": "urn:oncobridge:synthetic:mrn", "value": "SYN-0001" } ]
+            }
+        },
+        {
+        "fullUrl": "urn:uuid:22222222-2222-4222-8222-222222222222",
+            "resource": {
+                    "id": "condition-001",
+                    "resourceType": "Condition",
+                "subject": { "reference": "urn:uuid:11111111-1111-4111-8111-111111111111" },
+                        "onsetDateTime": "2019-03",
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "254837009",
+                            "display": "Malignant neoplasm of breast"
+                        }
+                    ]
+                },
+                "category": [ { "coding": [ { "system": "http://terminology.hl7.org/CodeSystem/condition-category", "code": "encounter-diagnosis" } ] } ]
+            }
+        },
+        { "fullUrl": "urn:uuid:33333333-3333-4333-8333-333333333333", "resource": { "resourceType": "Observation", "id": "observation-001", "status": "final", "code": { "coding": [ { "system": "http://loinc.org", "code": "21908-9", "display": "Stage group.clinical Cancer" } ] }, "subject": { "reference": "urn:uuid:11111111-1111-4111-8111-111111111111" }, "effectiveDateTime": "2019-04-02", "valueCodeableConcept": { "coding": [ { "system": "http://cancerstaging.org", "code": "IIA" } ] } } },
+
+        {
+            "fullUrl": "urn:uuid:44444444-4444-4444-8444-444444444444",
+            "resource": {
+                "resourceType": "Procedure",
+                "id": "procedure-001",
+                "status": "completed",
+                "subject": { "reference": "urn:uuid:11111111-1111-4111-8111-111111111111" },
+                "performedPeriod": { "start": "2019-05-10", "end": "2019-05-10" },
+                "code": { "coding": [ { "system": "http://snomed.info/sct", "code": "392021009", "display": "Lumpectomy of breast" } ] }
+            }
+        }
+    ]
+}

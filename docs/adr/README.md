@@ -17,6 +17,7 @@ that drifts out of date beside the code it describes.
 | [0006](0006-postgresql-and-raw-payload-storage.md) | PostgreSQL, with raw payloads stored as bytes and `jsonb` used only for queryable copies | Accepted |
 | [0007](0007-modular-monolith-enforced-boundary.md) | Modular monolith with an executably enforced dependency boundary | Accepted |
 | [0009](0009-no-terminology-server-in-v1.md) | No terminology server in V1 | Accepted |
+| [0010](0010-staged-fhir-bundle-extraction.md) | Staged FHIR bundle extraction, nullable source metadata, ingestion limits | Accepted |
 
 ## Deferred
 

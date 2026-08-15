@@ -1,15 +1,14 @@
 <Project>
+  <ItemGroup Label="FHIR R4 — OncoBridge.Interop.Fhir only">
+    <PackageVersion Include="Hl7.Fhir.R4" Version="6.4.0" />
+  </ItemGroup>
 
-  <!--
-    Central package management.
-    Phase 1 has exactly one production dependency rule worth enforcing: there are none.
-    No production project references any NuGet package. Only test projects do.
-
-    Deliberately absent (later phases, and their absence is part of the Phase 1 gate):
-      Hl7.Fhir.*                  -> P3, OncoBridge.Interop.Fhir ONLY
-      Microsoft.EntityFrameworkCore / Npgsql.*  -> P2, OncoBridge.Infrastructure ONLY
-      ASP.NET Core packages       -> P5, OncoBridge.Api ONLY
-  -->
+  <ItemGroup Label="Persistence — OncoBridge.Infrastructure only">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+  </ItemGroup>
 
   <ItemGroup Label="Test">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -20,6 +19,10 @@
 
   <ItemGroup Label="Property-based testing (temporal comparison only)">
     <PackageVersion Include="CsCheck" Version="4.4.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Integration testing — real PostgreSQL, never an in-memory substitute">
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
   </ItemGroup>
 
 </Project>
