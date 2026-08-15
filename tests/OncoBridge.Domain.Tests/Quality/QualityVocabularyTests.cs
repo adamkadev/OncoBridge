@@ -3,7 +3,6 @@ using OncoBridge.Domain.Quality;
 
 namespace OncoBridge.Domain.Tests.Quality;
 
-/// <summary>Check identifier format.</summary>
 public sealed class CheckIdTests
 {
     [Theory]
@@ -15,12 +14,12 @@ public sealed class CheckIdTests
         Assert.Equal(value, CheckId.Parse(value).Value);
 
     [Theory]
-    [InlineData("OB-CONF-2")]      // digits not padded
-    [InlineData("OB-CONF-0002")]   // too many digits
-    [InlineData("ob-conf-002")]    // lowercase
-    [InlineData("OB-C-002")]       // area too short
-    [InlineData("CONF-002")]       // missing prefix
-    [InlineData("OB-CONF")]        // missing number
+    [InlineData("OB-CONF-2")]
+    [InlineData("OB-CONF-0002")]
+    [InlineData("ob-conf-002")]
+    [InlineData("OB-C-002")]
+    [InlineData("CONF-002")]
+    [InlineData("OB-CONF")]
     [InlineData("")]
     public void A_malformed_identifier_is_rejected(string value) =>
         Assert.Throws<ArgumentException>(() => CheckId.Parse(value));
@@ -35,9 +34,6 @@ public sealed class CheckIdTests
     }
 }
 
-/// <summary>
-/// Finding construction, and the separation between findings and coverage notes.
-/// </summary>
 public sealed class FindingTests
 {
     private static readonly CheckId AnyCheck = CheckId.Parse("OB-CONF-002");
@@ -63,10 +59,6 @@ public sealed class FindingTests
         Assert.Equal("method absent", finding.Actual);
     }
 
-    /// <summary>
-    /// A citation is what makes a check auditable and what evidences that it was derived from a
-    /// published specification. A finding without one must not be constructible.
-    /// </summary>
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -104,7 +96,6 @@ public sealed class FindingTests
     }
 }
 
-/// <summary>Where findings attach, per ADR-0004.</summary>
 public sealed class FindingTargetTests
 {
     [Fact]
@@ -137,9 +128,6 @@ public sealed class FindingTargetTests
         Assert.Throws<ArgumentException>(() => FindingTarget.ForDomainEntity("  ", Guid.NewGuid()));
 }
 
-/// <summary>
-/// Coverage notes: recording that something was not examined, which is not a quality problem.
-/// </summary>
 public sealed class CoverageNoteTests
 {
     [Fact]
@@ -169,12 +157,6 @@ public sealed class CoverageNoteTests
     public void A_coverage_note_missing_its_subject_or_reason_is_rejected(string subject, string reason) =>
         Assert.Throws<ArgumentException>(() => CoverageNote.Create(subject, reason));
 
-    /// <summary>
-    /// The structural guarantee behind the distinction: a coverage note has no severity and shares
-    /// no base type with <see cref="Finding"/>, so it cannot be counted among findings even by
-    /// accident. Conflating "not examined" with "wrong" is prevented by the type system rather than
-    /// by convention.
-    /// </summary>
     [Fact]
     public void A_coverage_note_is_structurally_incapable_of_being_treated_as_a_finding()
     {

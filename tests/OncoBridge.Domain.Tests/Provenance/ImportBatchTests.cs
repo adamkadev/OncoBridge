@@ -4,13 +4,6 @@ using OncoBridge.Domain.Provenance;
 
 namespace OncoBridge.Domain.Tests.Provenance;
 
-/// <summary>
-/// The byte-preserving audit record, and the guarantee that its digest covers exactly those bytes.
-/// </summary>
-/// <remarks>
-/// These tests encode the Phase 0 correction: the audit representation is the raw bytes, and a
-/// digest computed over a parsed or re-serialised form would not be equivalent.
-/// </remarks>
 public sealed class ImportBatchTests
 {
     private static readonly byte[] AnyPayload = Encoding.UTF8.GetBytes(
@@ -39,12 +32,6 @@ public sealed class ImportBatchTests
         Assert.True(batch.VerifyPayloadIntegrity());
     }
 
-    /// <summary>
-    /// The point of the correction, stated as a test: a semantically identical payload whose bytes
-    /// differ — reordered keys and different whitespace — must produce a different digest. A store
-    /// that returned this instead of the original would be returning a different document as far as
-    /// the audit record is concerned.
-    /// </summary>
     [Fact]
     public void A_semantically_equivalent_but_differently_encoded_payload_has_a_different_digest()
     {
@@ -56,7 +43,6 @@ public sealed class ImportBatchTests
             CreateBatch(reordered).ContentHash);
     }
 
-    /// <summary>An audit record a caller can mutate afterwards is not an audit record.</summary>
     [Fact]
     public void Mutating_the_caller_s_buffer_afterwards_does_not_alter_the_batch()
     {
@@ -101,7 +87,6 @@ public sealed class ImportBatchTests
             entryCount: -1));
 }
 
-/// <summary>Digest computation and parsing.</summary>
 public sealed class ContentHashTests
 {
     [Fact]
@@ -135,8 +120,8 @@ public sealed class ContentHashTests
     [Theory]
     [InlineData("")]
     [InlineData("abc")]
-    [InlineData("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")] // uppercase
-    [InlineData("z3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")] // non-hex
+    [InlineData("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")]
+    [InlineData("z3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")]
     public void A_malformed_digest_is_rejected(string value) =>
         Assert.Throws<ArgumentException>(() => ContentHash.Parse(value));
 

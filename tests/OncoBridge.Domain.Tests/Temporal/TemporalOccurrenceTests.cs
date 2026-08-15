@@ -2,9 +2,6 @@ using OncoBridge.Domain.Temporal;
 
 namespace OncoBridge.Domain.Tests.Temporal;
 
-/// <summary>
-/// The exactly-one-of invariant, and the distinction between a point occurrence and an interval one.
-/// </summary>
 public sealed class TemporalOccurrenceTests
 {
     [Fact]
@@ -29,10 +26,6 @@ public sealed class TemporalOccurrenceTests
         Assert.Null(occurrence.Date);
     }
 
-    /// <summary>
-    /// "It happened in March 2019" and "it happened somewhere between 2019 and 2020" are different
-    /// assertions, and the model must keep them distinguishable.
-    /// </summary>
     [Fact]
     public void A_point_and_an_interval_are_never_equal()
     {

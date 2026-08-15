@@ -2,14 +2,6 @@ using System.Reflection;
 
 namespace OncoBridge.Api.Tests;
 
-/// <summary>
-/// Asserts that Phase 1 did not begin the API work (gate item 9).
-/// </summary>
-/// <remarks>
-/// <see cref="OncoBridge.Api"/> is deliberately a plain class library in Phase 1 rather than a Web
-/// SDK project, because the Web SDK would implicitly framework-reference ASP.NET Core. This test is
-/// expected to be <b>deleted as the first act of P5</b>.
-/// </remarks>
 public sealed class Phase1ScopeTests
 {
     [Fact]

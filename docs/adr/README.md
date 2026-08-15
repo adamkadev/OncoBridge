@@ -3,6 +3,11 @@
 Each record states **context**, **decision**, **consequences**. Decisions are recorded when they
 are settled and needed, not in advance.
 
+**These records are the only place architectural rationale lives.** Source code carries no
+explanatory comments and no XML documentation: names, types, invariants and tests are expected to
+carry meaning on their own, and anything they cannot express belongs here rather than in a comment
+that drifts out of date beside the code it describes.
+
 | ADR | Decision | Status |
 |-----|----------|--------|
 | [0001](0001-canonical-domain-independent-of-fhir.md) | The canonical domain is independent of FHIR | Accepted |

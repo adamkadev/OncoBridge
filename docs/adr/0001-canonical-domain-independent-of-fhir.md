@@ -32,6 +32,16 @@ The constraint is enforced by `DomainBoundaryTests`, which reads the real projec
 loaded assembly's reference graph. A boundary defended only by discipline is one that has already
 been crossed.
 
+## Identifier strategy
+
+Strongly-typed identifiers exist for exactly three things — `PatientId`, `ImportBatchId`,
+`SourceResourceId` — because each is passed as a parameter or stored as a foreign reference, where a
+bare `Guid` would let two unrelated identities be swapped silently.
+
+An entity's *own* identifier stays a plain `Guid`. It is not passed around, so wrapping it would add
+types without preventing anything. The asymmetry is deliberate, not an oversight: strong typing is
+applied where it does work and nowhere else.
+
 ## Consequences
 
 - Mapping code must be written by hand rather than generated. This is accepted: the mapping *is*

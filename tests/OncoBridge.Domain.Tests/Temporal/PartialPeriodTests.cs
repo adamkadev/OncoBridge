@@ -2,10 +2,6 @@ using OncoBridge.Domain.Temporal;
 
 namespace OncoBridge.Domain.Tests.Temporal;
 
-/// <summary>
-/// Interval semantics: missing boundaries stay missing, precision survives, and only genuine
-/// structural contradictions are rejected.
-/// </summary>
 public sealed class PartialPeriodTests
 {
     [Fact]
@@ -20,7 +16,6 @@ public sealed class PartialPeriodTests
         Assert.True(period.IsFullyBounded);
     }
 
-    /// <summary>An interval is a different assertion from a point and must not decay into one.</summary>
     [Fact]
     public void A_period_is_not_collapsed_to_its_start()
     {
@@ -65,10 +60,6 @@ public sealed class PartialPeriodTests
         Assert.Contains("at least one boundary", exception.Message, StringComparison.Ordinal);
     }
 
-    // ---------------------------------------------------------------------
-    // The ordering invariant: only a DEFINITE contradiction is rejected.
-    // ---------------------------------------------------------------------
-
     [Fact]
     public void An_end_definitely_before_the_start_is_rejected()
     {
@@ -84,10 +75,6 @@ public sealed class PartialPeriodTests
             () => PartialPeriod.Between(
                 PartialDate.FromDate(2019, 6, 1), PartialDate.FromYearMonth(2019, 3)));
 
-    /// <summary>
-    /// A zero-length period is a coherent assertion — something that began and ended within the
-    /// same stated span — so it is accepted.
-    /// </summary>
     [Fact]
     public void A_zero_length_period_is_accepted()
     {
@@ -98,11 +85,6 @@ public sealed class PartialPeriodTests
         Assert.Equal(TemporalComparison.Same, PartialDate.Compare(period.Start!, period.End!));
     }
 
-    /// <summary>
-    /// The important half of the invariant. These boundaries overlap, so no ordering can be proven
-    /// between them — and an unprovable ordering is not a contradiction. Rejecting it would be the
-    /// very fabrication this model exists to prevent.
-    /// </summary>
     [Fact]
     public void An_ambiguous_ordering_between_boundaries_is_accepted_not_rejected()
     {
@@ -127,10 +109,6 @@ public sealed class PartialPeriodTests
             () => PartialPeriod.Between(null!, PartialDate.FromYear(2019)));
     }
 
-    // ---------------------------------------------------------------------
-    // Equality and rendering.
-    // ---------------------------------------------------------------------
-
     [Fact]
     public void Periods_with_the_same_boundaries_are_equal()
     {
@@ -154,7 +132,6 @@ public sealed class PartialPeriodTests
             PartialPeriod.StartingAt(start));
     }
 
-    /// <summary>An absent boundary must be visible in the rendering, not silently omitted.</summary>
     [Fact]
     public void Rendering_makes_an_absent_boundary_visible()
     {

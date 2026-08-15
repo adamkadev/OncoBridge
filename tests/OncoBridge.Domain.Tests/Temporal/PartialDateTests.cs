@@ -2,14 +2,6 @@ using OncoBridge.Domain.Temporal;
 
 namespace OncoBridge.Domain.Tests.Temporal;
 
-/// <summary>
-/// Construction, precision preservation and representation of <see cref="PartialDate"/>.
-/// </summary>
-/// <remarks>
-/// The single behaviour under test throughout is that stated precision survives. A value written
-/// as <c>2019</c> must never become <c>2019-01-01</c> anywhere in its lifetime, because that
-/// fabricates an assertion the source never made.
-/// </remarks>
 public sealed class PartialDateTests
 {
     [Fact]
@@ -59,10 +51,6 @@ public sealed class PartialDateTests
         Assert.Equal("2019-03-14T10:00:00+02:00", date.ToString());
     }
 
-    /// <summary>
-    /// The central guarantee: nothing in the type produces a padded calendar value from a
-    /// less-precise one.
-    /// </summary>
     [Fact]
     public void Year_precision_never_renders_as_a_padded_calendar_date()
     {
@@ -86,7 +74,7 @@ public sealed class PartialDateTests
         Assert.Throws<ArgumentOutOfRangeException>(() => PartialDate.FromYearMonth(2019, month));
 
     [Theory]
-    [InlineData(2019, 2, 29)] // 2019 is not a leap year
+    [InlineData(2019, 2, 29)]
     [InlineData(2019, 4, 31)]
     [InlineData(2019, 1, 0)]
     [InlineData(2019, 1, 32)]
@@ -120,10 +108,6 @@ public sealed class PartialDateTests
         Assert.False(first != second);
     }
 
-    /// <summary>
-    /// The distinction between the two notions of sameness, asserted directly: these two values
-    /// denote the same moment but were not written the same way.
-    /// </summary>
     [Fact]
     public void Instants_with_the_same_moment_but_different_offsets_are_not_representationally_equal()
     {

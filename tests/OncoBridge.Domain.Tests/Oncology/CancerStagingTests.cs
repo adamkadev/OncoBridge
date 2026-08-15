@@ -4,10 +4,6 @@ using OncoBridge.Domain.Terminology;
 
 namespace OncoBridge.Domain.Tests.Oncology;
 
-/// <summary>
-/// Aggregate invariants for a staging assessment, and the line between a domain invariant and a
-/// conformance finding.
-/// </summary>
 public sealed class CancerStagingTests
 {
     private static readonly CodedConcept AnyStageGroup =
@@ -17,10 +13,6 @@ public sealed class CancerStagingTests
 
     private static StageCategory CategoryFor(StageAxis axis, string code) =>
         new(axis, Category(code), SourceResourceId.New());
-
-    // ---------------------------------------------------------------------
-    // Assembling one concept from several sources.
-    // ---------------------------------------------------------------------
 
     [Fact]
     public void Categories_arriving_from_separate_sources_become_one_addressable_assessment()
@@ -41,10 +33,6 @@ public sealed class CancerStagingTests
         Assert.Equal(3, staging.Categories.Count);
     }
 
-    /// <summary>
-    /// The reason field-level lineage is worth recording for this concept: one aggregate, several
-    /// distinct sources.
-    /// </summary>
     [Fact]
     public void An_assessment_reports_every_distinct_source_it_was_assembled_from()
     {
@@ -79,10 +67,6 @@ public sealed class CancerStagingTests
 
         Assert.Single(staging.ContributingSourceResources);
     }
-
-    // ---------------------------------------------------------------------
-    // Genuine invariants.
-    // ---------------------------------------------------------------------
 
     [Fact]
     public void Two_categories_on_the_same_axis_are_a_contradiction_and_are_rejected()
@@ -134,15 +118,6 @@ public sealed class CancerStagingTests
             stageGroup: AnyStageGroup,
             categories: [null!]));
 
-    // ---------------------------------------------------------------------
-    // The distinction that ADR-0004 rests on.
-    // ---------------------------------------------------------------------
-
-    /// <summary>
-    /// A missing staging method is a conformance finding against the source, not a domain invariant
-    /// violation. If the aggregate refused to exist without one, the check that reports its absence
-    /// could never run, and the defect the system exists to surface would be invisible.
-    /// </summary>
     [Fact]
     public void An_assessment_without_a_method_is_constructible_because_that_is_a_finding_not_an_invariant()
     {
