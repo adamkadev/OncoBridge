@@ -10,6 +10,9 @@ internal static class SyntheticFixtures
     internal static byte[] MinimalBundleBytes { get; } =
         File.ReadAllBytes(Path.Combine(RepoRoot, "test-data/synthetic/phase2/bundle-minimal.json"));
 
+    internal static byte[] PrimaryCancerBundleBytes { get; } =
+        File.ReadAllBytes(Path.Combine(RepoRoot, "test-data/synthetic/phase3/bundle-primary-cancer.json"));
+
     internal static byte[] Utf8(string json) => Encoding.UTF8.GetBytes(json);
 
     private static string ResolveRepoRoot()

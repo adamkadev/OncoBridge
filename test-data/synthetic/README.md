@@ -8,6 +8,7 @@ here, or anywhere else in this repository.**
 | Directory | Phase | Contents |
 |---|---|---|
 | [`phase2/`](phase2/) | P2 | `bundle-minimal.json` — a four-entry FHIR R4 Bundle used to prove ingestion, byte-exact payload storage and `jsonb` round-tripping. Hand-authored; see [`phase2/README.md`](phase2/README.md). |
+| [`phase3/`](phase3/) | P3 | `bundle-primary-cancer.json` — a two-entry FHIR R4 Bundle carrying an mCODE-profiled primary cancer Condition, used to prove FHIR → canonical normalization. Hand-authored; see [`phase3/README.md`](phase3/README.md). |
 
 ## Rules
 

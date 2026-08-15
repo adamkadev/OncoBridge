@@ -3,4 +3,8 @@ namespace OncoBridge.Interop.Fhir;
 internal static class FhirResourceTypes
 {
     internal const string Bundle = "Bundle";
+
+    internal const string Patient = "Patient";
+
+    internal const string Condition = "Condition";
 }

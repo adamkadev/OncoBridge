@@ -1,0 +1,13 @@
+using OncoBridge.Domain.Oncology;
+using OncoBridge.Domain.Provenance;
+
+namespace OncoBridge.Interop.Fhir.Normalization;
+
+public sealed record NormalizationResult
+{
+    public required IReadOnlyList<Patient> Patients { get; init; }
+
+    public required IReadOnlyList<PrimaryCancerDiagnosis> PrimaryCancerDiagnoses { get; init; }
+
+    public required IReadOnlyList<Lineage> Lineage { get; init; }
+}
