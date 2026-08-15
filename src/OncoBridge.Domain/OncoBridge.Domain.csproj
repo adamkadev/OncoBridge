@@ -1,18 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!--
-    ARCHITECTURAL INVARIANT (ADR-0001, ADR-0007)
-
-    This project must have ZERO PackageReference and ZERO ProjectReference items.
-    It may use the BCL and nothing else.
-
-    Forbidden forever: Hl7.Fhir.*, Microsoft.EntityFrameworkCore.*, Npgsql.*,
-    Microsoft.AspNetCore.*.
-
-    This is enforced executably by OncoBridge.Domain.Tests/Architecture/DomainBoundaryTests.cs,
-    which parses this file. Adding a reference here fails the build gate, not a code review.
-  -->
-
   <PropertyGroup>
     <RootNamespace>OncoBridge.Domain</RootNamespace>
   </PropertyGroup>

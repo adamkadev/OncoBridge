@@ -6,9 +6,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Pinned explicitly so the whole graph unifies on one EF Core version. The Npgsql provider
-         depends on an older patch, and Design is PrivateAssets=all, so without this the API project
-         resolves a different EF Core than Infrastructure was compiled against. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
