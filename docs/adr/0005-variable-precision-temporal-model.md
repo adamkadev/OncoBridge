@@ -7,6 +7,11 @@
 > **partial-order temporal comparison with an explicit indeterminate outcome**, and the type is
 > named `TemporalComparison`. The semantics were never in question; only the label was.
 
+> **Offset-range correction.** This ADR previously gave the legal UTC offset range as
+> −12:00 … +14:00. The lower bound was wrong: FHIR inherits the XML Schema range, which is
+> −14:00 … +14:00. `PartialDate` widens by ±14:00 and is covered by boundary tests; only this
+> document was out of step.
+
 ## Context
 
 FHIR `date` and `dateTime` are variable precision: `2019`, `2019-03`, `2019-03-14` and
@@ -38,7 +43,7 @@ so no ordering exists and none may be invented.
 
 **Mixed floating and instant values.** Year, month and day carry no timezone, so they cannot be
 placed on the UTC timeline exactly. When one side is an instant and the other is not, the floating
-side is widened by the full range of legal UTC offsets (−12:00 … +14:00) before comparing, so a
+side is widened by the full range of legal UTC offsets (−14:00 … +14:00) before comparing, so a
 definite result is returned only when it holds for *every* offset the value could have had.
 Comparing two floating values needs no widening: both sit on the same calendar timeline and the
 unknown offset cancels.
