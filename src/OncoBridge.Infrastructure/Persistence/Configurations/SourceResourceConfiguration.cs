@@ -33,7 +33,7 @@ internal sealed class SourceResourceConfiguration : IEntityTypeConfiguration<Sou
         builder.Property(resource => resource.ContentHash)
             .HasColumnName("content_hash")
             .HasConversion(OncoBridgeValueConverters.ContentHash)
-            .HasMaxLength(64);
+            .HasMaxLength(ContentHash.Sha256HexLength);
 
         builder.Property(resource => resource.ResourceJson)
             .HasColumnName("resource_json")

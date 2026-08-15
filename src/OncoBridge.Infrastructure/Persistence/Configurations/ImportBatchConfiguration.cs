@@ -37,7 +37,7 @@ internal sealed class ImportBatchConfiguration : IEntityTypeConfiguration<Import
         builder.Property(batch => batch.ContentHash)
             .HasColumnName("content_hash")
             .HasConversion(OncoBridgeValueConverters.ContentHash)
-            .HasMaxLength(64)
+            .HasMaxLength(ContentHash.Sha256HexLength)
             .IsRequired();
 
         builder.Property(batch => batch.FileName)

@@ -6,12 +6,14 @@ namespace OncoBridge.Infrastructure.Persistence.Configurations;
 
 internal sealed class LineageConfiguration : IEntityTypeConfiguration<Lineage>
 {
+    private const string ShadowKeyProperty = "Id";
+
     public void Configure(EntityTypeBuilder<Lineage> builder)
     {
         builder.ToTable("lineage");
 
-        builder.Property<Guid>("Id").HasColumnName("id").ValueGeneratedOnAdd();
-        builder.HasKey("Id");
+        builder.Property<Guid>(ShadowKeyProperty).HasColumnName("id").ValueGeneratedOnAdd();
+        builder.HasKey(ShadowKeyProperty);
 
         builder.Property(lineage => lineage.DomainEntityType)
             .HasColumnName("domain_entity_type")

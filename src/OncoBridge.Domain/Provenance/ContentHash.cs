@@ -4,13 +4,13 @@ namespace OncoBridge.Domain.Provenance;
 
 public readonly record struct ContentHash
 {
-    private const int Sha256HexLength = 64;
+    public const string Algorithm = "SHA-256";
+
+    public const int Sha256HexLength = 64;
 
     private ContentHash(string value) => Value = value;
 
     public string Value { get; }
-
-    public static string Algorithm => "SHA-256";
 
     public static ContentHash ComputeSha256(ReadOnlySpan<byte> content)
     {

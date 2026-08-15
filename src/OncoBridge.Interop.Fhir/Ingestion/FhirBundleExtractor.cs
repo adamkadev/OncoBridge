@@ -34,14 +34,14 @@ public sealed class FhirBundleExtractor
             throw new BundleIngestionException("Payload root is not a JSON object.");
         }
 
-        if (ReadString(root, "resourceType") != "Bundle")
+        if (ReadString(root, FhirJsonElements.ResourceType) != FhirResourceTypes.Bundle)
         {
             throw new BundleIngestionException("Payload is not a FHIR Bundle.");
         }
 
         return new ExtractedBundle
         {
-            BundleType = ReadString(root, "type"),
+            BundleType = ReadString(root, FhirJsonElements.BundleType),
             Entries = ExtractEntries(root),
         };
     }
@@ -60,7 +60,7 @@ public sealed class FhirBundleExtractor
 
     private IReadOnlyList<ExtractedEntry> ExtractEntries(JsonElement root)
     {
-        if (!root.TryGetProperty("entry", out JsonElement entries))
+        if (!root.TryGetProperty(FhirJsonElements.BundleEntry, out JsonElement entries))
         {
             return [];
         }
@@ -91,10 +91,10 @@ public sealed class FhirBundleExtractor
 
     private ExtractedEntry ExtractEntry(JsonElement entry, int entryIndex)
     {
-        string? fullUrl = entry.ValueKind == JsonValueKind.Object ? ReadString(entry, "fullUrl") : null;
+        string? fullUrl = entry.ValueKind == JsonValueKind.Object ? ReadString(entry, FhirJsonElements.EntryFullUrl) : null;
 
         if (entry.ValueKind != JsonValueKind.Object
-            || !entry.TryGetProperty("resource", out JsonElement resource)
+            || !entry.TryGetProperty(FhirJsonElements.EntryResource, out JsonElement resource)
             || resource.ValueKind != JsonValueKind.Object)
         {
             return new ExtractedEntry
@@ -107,7 +107,7 @@ public sealed class FhirBundleExtractor
 
         byte[] rawResource = Encoding.UTF8.GetBytes(resource.GetRawText());
 
-        return Interpret(rawResource, entryIndex, fullUrl, ReadString(resource, "resourceType"));
+        return Interpret(rawResource, entryIndex, fullUrl, ReadString(resource, FhirJsonElements.ResourceType));
     }
 
     private ExtractedEntry Interpret(
