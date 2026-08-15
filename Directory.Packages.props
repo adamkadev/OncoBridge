@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Central package management.
+    Phase 1 has exactly one production dependency rule worth enforcing: there are none.
+    No production project references any NuGet package. Only test projects do.
+
+    Deliberately absent (later phases, and their absence is part of the Phase 1 gate):
+      Hl7.Fhir.*                  -> P3, OncoBridge.Interop.Fhir ONLY
+      Microsoft.EntityFrameworkCore / Npgsql.*  -> P2, OncoBridge.Infrastructure ONLY
+      ASP.NET Core packages       -> P5, OncoBridge.Api ONLY
+  -->
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+
+  <ItemGroup Label="Property-based testing (temporal comparison only)">
+    <PackageVersion Include="CsCheck" Version="4.4.1" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../OncoBridge.Domain/OncoBridge.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OncoBridge.Api/OncoBridge.Api.csproj" />
+    <Project Path="src/OncoBridge.Application/OncoBridge.Application.csproj" />
+    <Project Path="src/OncoBridge.Domain/OncoBridge.Domain.csproj" />
+    <Project Path="src/OncoBridge.Infrastructure/OncoBridge.Infrastructure.csproj" />
+    <Project Path="src/OncoBridge.Interop.Fhir/OncoBridge.Interop.Fhir.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OncoBridge.Api.Tests/OncoBridge.Api.Tests.csproj" />
+    <Project Path="tests/OncoBridge.Domain.Tests/OncoBridge.Domain.Tests.csproj" />
+    <Project Path="tests/OncoBridge.Interop.Fhir.Tests/OncoBridge.Interop.Fhir.Tests.csproj" />
+  </Folder>
+</Solution>

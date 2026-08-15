@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EF Core / Npgsql arrive in P2. Nothing persistence-related exists yet. -->
+
+  <ItemGroup>
+    <ProjectReference Include="../OncoBridge.Domain/OncoBridge.Domain.csproj" />
+    <ProjectReference Include="../OncoBridge.Application/OncoBridge.Application.csproj" />
+  </ItemGroup>
+
+</Project>

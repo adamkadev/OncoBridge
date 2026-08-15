@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The ONLY production project permitted to reference Hl7.Fhir.* (P3).
+    No FHIR package is referenced yet - Phase 1 gate item 7.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../OncoBridge.Domain/OncoBridge.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

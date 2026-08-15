@@ -1,0 +1,1016 @@
+<title>OncoBridge Phase 0</title>
+<style>
+  :root {
+    --paper:#f5f7f8; --surface:#ffffff; --surface-2:#eef2f4; --surface-3:#e4eaed;
+    --ink:#131a1f; --ink-2:#3d4b54; --ink-3:#6b7c86;
+    --rule:#d8e0e4; --rule-2:#c2ced4;
+    --accent:#14556b; --accent-2:#1d7d99;
+    --err:#a8322a; --warn:#8a6008; --ok:#2c6349;
+    --err-bg:#fbeeec; --warn-bg:#faf3e2; --ok-bg:#eaf3ee;
+    --serif: Charter, "Bitstream Charter", "Iowan Old Style", Georgia, Cambria, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0d1216; --surface:#131b21; --surface-2:#1a242b; --surface-3:#22303a;
+      --ink:#e6edf1; --ink-2:#a9b9c2; --ink-3:#74868f;
+      --rule:#24333c; --rule-2:#31434e;
+      --accent:#6fc0d8; --accent-2:#8fd4e8;
+      --err:#f08a80; --warn:#e0b463; --ok:#7fc9a4;
+      --err-bg:#2a1917; --warn-bg:#251f12; --ok-bg:#14231c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0d1216; --surface:#131b21; --surface-2:#1a242b; --surface-3:#22303a;
+    --ink:#e6edf1; --ink-2:#a9b9c2; --ink-3:#74868f;
+    --rule:#24333c; --rule-2:#31434e;
+    --accent:#6fc0d8; --accent-2:#8fd4e8;
+    --err:#f08a80; --warn:#e0b463; --ok:#7fc9a4;
+    --err-bg:#2a1917; --warn-bg:#251f12; --ok-bg:#14231c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.62;
+    margin: 0; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px 120px; }
+  .layout { display: grid; grid-template-columns: 1fr; gap: 48px; }
+  @media (min-width: 1100px) {
+    .layout { grid-template-columns: 216px minmax(0,1fr); gap: 56px; align-items: start; }
+  }
+
+  /* ---------- masthead ---------- */
+  header.mast { padding: 64px 0 36px; border-bottom: 2px solid var(--ink); margin-bottom: 44px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 600; font-size: clamp(38px, 6vw, 62px);
+    line-height: 1.04; letter-spacing: -.02em; margin: 0 0 18px; text-wrap: balance;
+  }
+  .standfirst {
+    font-family: var(--serif); font-size: clamp(17px, 2.1vw, 20px); line-height: 1.5;
+    color: var(--ink-2); max-width: 62ch; margin: 0 0 30px;
+  }
+  .mast-meta { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center;
+    font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .mast-meta b { color: var(--ink-2); font-weight: 500; }
+
+  .verdict-chip {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--warn-bg); color: var(--warn);
+    border: 1px solid currentColor; border-radius: 2px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .06em;
+    text-transform: uppercase; padding: 6px 12px; font-weight: 600;
+  }
+  .verdict-chip::before { content:""; width: 7px; height: 7px; background: currentColor; }
+
+  /* ---------- toc ---------- */
+  nav.toc { font-family: var(--mono); font-size: 12px; line-height: 1.5; }
+  @media (min-width: 1100px) { nav.toc { position: sticky; top: 28px; max-height: calc(100vh - 56px); overflow-y: auto; } }
+  nav.toc h2 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 14px; font-weight: 600;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  nav.toc a {
+    color: var(--ink-2); text-decoration: none; display: grid;
+    grid-template-columns: 26px 1fr; padding: 3px 0; border-radius: 2px;
+  }
+  nav.toc a span { color: var(--ink-3); }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc a:hover span { color: var(--accent); }
+  nav.toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  nav.toc .grp { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); }
+
+  /* ---------- sections ---------- */
+  section { margin: 0 0 52px; scroll-margin-top: 24px; }
+  h2.sec {
+    font-family: var(--serif); font-size: 27px; font-weight: 600; letter-spacing: -.01em;
+    line-height: 1.2; margin: 0 0 6px; display: grid; grid-template-columns: 44px 1fr;
+    align-items: baseline; text-wrap: balance;
+  }
+  h2.sec .num {
+    font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent);
+    letter-spacing: .04em;
+  }
+  h2.sec + .rule { height: 1px; background: var(--rule); margin: 0 0 20px 44px; }
+  .body { max-width: 72ch; }
+  @media (min-width: 1100px) { .indent { margin-left: 44px; } }
+  h3 {
+    font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--ink-2); margin: 30px 0 10px;
+  }
+  p { margin: 0 0 15px; }
+  ul, ol.list { margin: 0 0 15px; padding-left: 20px; }
+  li { margin-bottom: 7px; }
+  strong { font-weight: 650; color: var(--ink); }
+  code {
+    font-family: var(--mono); font-size: .87em; background: var(--surface-2);
+    padding: 1.5px 5px; border-radius: 2px; color: var(--ink); border: 1px solid var(--rule);
+  }
+  a.ext { color: var(--accent); text-decoration: underline; text-underline-offset: 2px;
+    text-decoration-thickness: 1px; }
+  a.ext:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- callouts ---------- */
+  .call {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    padding: 16px 20px; margin: 20px 0; border-radius: 0 3px 3px 0;
+    border-top: 1px solid var(--rule); border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .call .lbl {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; display: block; margin-bottom: 8px;
+  }
+  .call p:last-child { margin-bottom: 0; }
+  .call.verified { border-left-color: var(--ok); }
+  .call.verified .lbl { color: var(--ok); }
+  .call.cut { border-left-color: var(--err); }
+  .call.cut .lbl { color: var(--err); }
+  .call.rec { border-left-color: var(--warn); }
+  .call.rec .lbl { color: var(--warn); }
+
+  /* ---------- tables ---------- */
+  .tw { overflow-x: auto; margin: 20px 0; border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 540px; }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    text-align: left; color: var(--ink-3); font-weight: 600;
+    padding: 11px 14px; border-bottom: 1px solid var(--rule-2); background: var(--surface-2);
+    white-space: nowrap;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top;
+    color: var(--ink-2); }
+  tr:last-child td { border-bottom: none; }
+  td strong, td b { color: var(--ink); }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .num-col { font-variant-numeric: tabular-nums; }
+
+  /* ---------- severity chips ---------- */
+  .sev {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+    font-weight: 600; padding: 3px 7px; border-radius: 2px; white-space: nowrap;
+    display: inline-block; border: 1px solid;
+  }
+  .sev.e { color: var(--err); background: var(--err-bg); border-color: var(--err); }
+  .sev.w { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
+  .sev.i { color: var(--accent); background: var(--surface-2); border-color: var(--accent); }
+  .sev.o { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+
+  /* ---------- pipeline diagram ---------- */
+  .pipe { display: flex; flex-wrap: wrap; gap: 0; margin: 24px 0; align-items: stretch; }
+  .pipe .st {
+    flex: 1 1 130px; background: var(--surface); border: 1px solid var(--rule);
+    padding: 13px 14px; position: relative; min-width: 130px;
+  }
+  .pipe .st + .st { border-left: none; }
+  .pipe .st .k {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px; font-weight: 600;
+  }
+  .pipe .st .v { font-size: 13px; line-height: 1.38; color: var(--ink); font-weight: 600; }
+  .pipe .st .n { font-size: 11.5px; line-height: 1.4; color: var(--ink-3); margin-top: 5px;
+    font-family: var(--mono); }
+
+  /* three-representation panels */
+  .reps { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 22px 0; }
+  @media (min-width: 760px) { .reps { grid-template-columns: repeat(3, 1fr); } }
+  .rep { background: var(--surface); border: 1px solid var(--rule); border-top: 3px solid var(--accent);
+    padding: 16px; border-radius: 0 0 3px 3px; }
+  .rep h4 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    margin: 0 0 10px; color: var(--accent); font-weight: 600;
+  }
+  .rep p { font-size: 13px; line-height: 1.5; margin: 0 0 9px; color: var(--ink-2); }
+  .rep dl { margin: 0; font-size: 12.5px; }
+  .rep dt { font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); margin-top: 9px; }
+  .rep dd { margin: 2px 0 0; color: var(--ink-2); }
+
+  /* solution tree */
+  pre.tree {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65; background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 18px 20px; overflow-x: auto;
+    margin: 20px 0; color: var(--ink-2);
+  }
+  pre.tree b { color: var(--ink); font-weight: 600; }
+  pre.tree i { color: var(--ink-3); font-style: normal; }
+  pre.tree em { color: var(--accent); font-style: normal; }
+
+  /* acceptance scenario */
+  .gherkin {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7; background: var(--surface);
+    border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    border-radius: 0 3px 3px 0; padding: 18px 20px; overflow-x: auto; margin: 20px 0;
+    color: var(--ink-2); white-space: pre;
+  }
+  .gherkin b { color: var(--accent); font-weight: 600; }
+  .gherkin u { color: var(--ink); text-decoration: none; font-weight: 600; }
+
+  /* phase cards */
+  .phases { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+  .ph { display: grid; grid-template-columns: 62px 1fr; gap: 16px; background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 14px 16px; align-items: start; }
+  .ph .pn { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--accent);
+    font-weight: 600; text-transform: uppercase; padding-top: 2px; }
+  .ph .pt { font-weight: 650; font-size: 14.5px; margin-bottom: 3px; color: var(--ink); }
+  .ph .pd { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .ph .pg { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 6px; }
+
+  /* verdict block */
+  .verdict {
+    border: 2px solid var(--ink); border-radius: 3px; padding: 26px 28px; margin: 26px 0;
+    background: var(--surface);
+  }
+  .verdict .big {
+    font-family: var(--serif); font-size: clamp(28px, 4.4vw, 40px); font-weight: 600;
+    line-height: 1.1; margin: 12px 0 16px; color: var(--ink); letter-spacing: -.015em;
+  }
+  footer { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); line-height: 1.7; }
+  footer a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <p class="eyebrow">OncoBridge · Phase 0 · Feasibility &amp; Domain Analysis</p>
+  <h1>Proving a boundary, not building a registry</h1>
+  <p class="standfirst">A feasibility and domain analysis for OncoBridge — an oncology data quality and interoperability workbench. No production code. The deliverable is a defensible V1 scope, a set of architectural decisions, and a verdict.</p>
+  <div class="mast-meta">
+    <span class="verdict-chip">Green light with changes</span>
+    <span>Revision <b>Rev B — four corrections applied</b></span>
+    <span>Status <b>For technical review</b></span>
+    <span>Standards baseline <b>FHIR R4 · mCODE STU4 (v4.0.0)</b></span>
+    <span>Code written <b>None</b></span>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1"><span>01</span>Problem statement</a></li>
+    <li><a href="#s2"><span>02</span>Intended user</a></li>
+    <li><a href="#s3"><span>03</span>What it is not</a></li>
+    <li><a href="#s4"><span>04</span>Challenging V1</a></li>
+    <li><a href="#s5"><span>05</span>Minimal concept set</a></li>
+    <li><a href="#s6"><span>06</span>Source FHIR resources</a></li>
+    <li><a href="#s7"><span>07</span>Where mCODE earns it</a></li>
+    <li><a href="#s8"><span>08</span>Three representations</a></li>
+    <li><a href="#s9"><span>09</span>Canonical vocabulary</a></li>
+    <li><a href="#s10"><span>10</span>Provenance model</a></li>
+    <li><a href="#s11"><span>11</span>Quality semantics</a></li>
+    <li><a href="#s12"><span>12</span>The six V1 checks</a></li>
+    <li><a href="#s13"><span>13</span>Date semantics</a></li>
+    <li><a href="#s14"><span>14</span>Terminology boundary</a></li>
+    <li><a href="#s15"><span>15</span>Architectural boundaries</a></li>
+    <li><a href="#s16"><span>16</span>Solution structure</a></li>
+    <li><a href="#s17"><span>17</span>Postgres vs SQL Server</a></li>
+    <li><a href="#s18"><span>18</span>Acceptance scenario</a></li>
+    <li><a href="#s19"><span>19</span>Testing strategy</a></li>
+    <li><a href="#s20"><span>20</span>Risk register</a></li>
+    <li><a href="#s21"><span>21</span>NO-GO conditions</a></li>
+    <li><a href="#s22"><span>22</span>First ADRs</a></li>
+    <li><a href="#s23"><span>23</span>Implementation phases</a></li>
+    <li><a href="#s24"><span>24</span>Postponed</a></li>
+  </ol>
+  <div class="grp">
+    <ol>
+      <li><a href="#summary"><span>▸</span>Final output</a></li>
+      <li><a href="#verdict"><span>▸</span>Verdict</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<section id="s1">
+  <h2 class="sec"><span class="num">01</span>The problem, restated</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Oncology data arriving as FHIR R4 is structurally valid far more often than it is <em>fit for purpose</em>: references dangle, profile-mandatory elements are absent, staging is scattered across four sibling <code>Observation</code> resources that must be reassembled into one concept, and dates arrive at inconsistent precision. OncoBridge ingests synthetic FHIR R4 bundles, stores every source resource verbatim and immutably, normalizes a deliberately small set of oncology concepts into a canonical domain model that is <em>not</em> FHIR-shaped, evaluates each import against a named and individually-cited set of deterministic data-quality checks spanning structural, conformance, referential and domain-consistency classes, and records the lineage linking every normalized entity back to the source resources and transformations that produced it — then exposes all four layers through a REST API and an Angular inspector that renders <strong>source → normalized → quality → provenance</strong> for any single concept. The engineering problem is not "read FHIR"; it is maintaining a rigorous, inspectable, reversible boundary between an external interchange format and an internal domain model, and making every judgement the system reaches auditable back to a published specification statement.</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2 class="sec"><span class="num">02</span>Who this is actually for</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Being honest about this changes the design, so it is worth stating plainly. There are two real users and one fictional one.</p>
+    <h3>Primary — the technical evaluator</h3>
+    <p>A hiring engineer, tech lead, or architect who will spend <strong>ten to twenty minutes</strong> in the repository. They will read the README, skim the ADRs, open one or two source files, and possibly run it. Every design decision below is optimized for this person: the ADR list, the architecture test that enforces the FHIR/domain boundary, and the four-pane inspector exist because they make the architecture <em>legible in minutes</em>. A beautiful timeline chart does not.</p>
+    <h3>Secondary — the interoperability-literate reviewer</h3>
+    <p>Someone who knows FHIR and will check whether the standards claims are accurate. This user is the reason every conformance check carries a citation field and the reason the UI must never say "mCODE validated" when it means "passed six OncoBridge checks."</p>
+    <h3>Fictional — the data steward</h3>
+    <p>The in-universe persona: someone triaging an inbound oncology data feed who needs to know what arrived, what is wrong with it, and where each normalized value came from. This persona exists to keep the feature set coherent. <strong>It is not a real user and must not be used to justify scope.</strong> Every time a feature is proposed "because a data steward would want it," that is the moment to check whether it also serves the primary user.</p>
+  </div>
+</section>
+
+<section id="s3">
+  <h2 class="sec"><span class="num">03</span>What OncoBridge is not</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>These distinctions are load-bearing — they are what keeps the project both scoped and legally safe.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Not a…</th><th>Because</th><th>Observable difference</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cancer registry</strong></td><td>A registry's purpose is complete, longitudinal, standards-abstracted case capture for population reporting, with human abstractors and mandated data dictionaries. OncoBridge captures whatever arrives and reports on its shortfalls.</td><td>A registry <em>fills gaps</em>; OncoBridge <em>reports them and stops</em>. No manual entry, no abstraction workflow, no case completeness target.</td></tr>
+        <tr><td><strong>EHR</strong></td><td>No encounter workflow, no orders, no scheduling, no clinical authoring, no user-to-patient care relationship. Data is write-once at import.</td><td>There is no "edit patient" screen anywhere in V1, by design.</td></tr>
+        <tr><td><strong>Generic FHIR viewer</strong></td><td>This is the distinction most at risk of collapsing. A viewer renders resources. OncoBridge <em>transforms</em> them into a model with different shape, different cardinality and its own invariants — most visibly by collapsing four staging <code>Observation</code> resources into one composite value object.</td><td>If the normalized model ever looks like a prettier <code>Bundle</code>, the project has failed. The staging composite is the proof that it doesn't.</td></tr>
+        <tr><td><strong>Decision support</strong></td><td>Every rule is structural, referential, or temporal-ordering. None interprets a clinical value, suggests an action, or scores a patient.</td><td>No check reads a tumour marker <em>value</em>. No output contains an imperative verb directed at care.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="call cut">
+      <span class="lbl">Naming discipline follows from this</span>
+      <p>The "generic FHIR viewer" risk is mitigated by architecture. The "decision support" risk is mitigated by <em>vocabulary</em>, and it must be enforced in code, not just in a disclaimer: the API returns <code>findings</code>, never <code>errors</code> or <code>alerts</code>; a check is <code>OB-CONF-002</code>, never <code>StagingIncompleteWarning</code>; no route, type or field name in the codebase may contain <em>diagnose</em>, <em>assess</em>, <em>recommend</em>, <em>risk</em>, or <em>clinical</em>. This is cheap to hold from day one and expensive to retrofit.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s4">
+  <h2 class="sec"><span class="num">04</span>Challenging the proposed V1</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>The hypothesis proposed five concepts. Two of them do not earn their place, and one of them is carrying the entire architecture without having been identified as doing so.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Concept</th><th class="mono">Verdict</th><th>Reasoning</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Cancer stage</strong></td>
+          <td><span class="sev o">Keep — core</span></td>
+          <td>This is the architectural centre of the project and should be protected at all cost. The mCODE <code>TNMStageGroup</code> profile uses <code>hasMember</code> to reference the T, N and M category observations — verified: <code>hasMember:TNMCategory</code> is <code>0..3</code> and Must Support. That means <strong>a graph in the source must become a single composite value object in the domain</strong>. That one fact exercises referential integrity checking, cross-resource aggregation, conflict detection, and a genuine domain invariant. It is the single strongest argument that OncoBridge is not a FHIR viewer.</td>
+        </tr>
+        <tr>
+          <td><strong>Primary cancer diagnosis</strong></td>
+          <td><span class="sev o">Keep — anchor</span></td>
+          <td>The anchor entity everything else hangs from, and the source of the most realistic conformance failures on synthetic data. Non-negotiable.</td>
+        </tr>
+        <tr>
+          <td><strong>Patient</strong></td>
+          <td><span class="sev o">Keep — minimal</span></td>
+          <td>Necessary plumbing and the subject of the cross-patient integrity check. Deliberately shallow: identifier, birth date, sex-at-birth-as-recorded. Nothing else. It is not a showcase and should not be treated as one.</td>
+        </tr>
+        <tr>
+          <td><strong>Treatment / procedure</strong></td>
+          <td><span class="sev w">Keep — narrowed</span></td>
+          <td>Narrowed to <em>surgical procedure only</em>. It earns inclusion for a different reason than the others: it is the only concept introducing a second date polymorphism (<code>Procedure.performed[x]</code> as dateTime <em>or</em> Period, distinct from <code>Condition.onset[x]</code>), and a timeline needs more than one event type to be a timeline. This is the one concept included partly for demonstrative rather than architectural reasons — <strong>and therefore the first thing to cut if Phase 3 overruns.</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Tumour marker / biomarker</strong></td>
+          <td><span class="sev e">Cut from V1</span></td>
+          <td>The weakest proposal, and cutting it is the most important recommendation in this section.</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="call cut">
+      <span class="lbl">Why tumour markers are cut</span>
+      <p>Architecturally, <code>TumorMarkerTest</code> is <em>just another <code>Observation</code></em> — structurally identical to the staging observations already being handled. It adds no new boundary, no new relationship shape, and no new persistence concern. What it <em>does</em> add is the hardest problem in the entire domain: UCUM unit normalization, comparator semantics (<code>&lt;</code>, <code>&gt;</code> on <code>Quantity</code>), reference-range interpretation, and value-set membership across a large LOINC space. Doing that properly requires a terminology service. Doing it improperly means inventing medical judgement — precisely what the brief forbids.</p>
+      <p>It is the textbook case of a feature that sounds impressive and delivers weak software-engineering value per unit of risk. <strong>Cut it, and say in the README that it was cut deliberately and why.</strong> A reviewer who sees a documented, reasoned exclusion reads competence; a reviewer who sees a half-implemented biomarker module reads the opposite.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s5">
+  <h2 class="sec"><span class="num">05</span>Minimal concept set</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Four concepts. Each is listed with the architectural capability it is the <em>only</em> concept to prove — if a concept has no unique column entry, it should not be in V1.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Domain concept</th><th>Uniquely proves</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Patient</strong></td><td>Subject resolution; the cross-resource identity check; batch-scoped uniqueness</td></tr>
+        <tr><td><strong>PrimaryCancerDiagnosis</strong></td><td>Profile-mandatory conformance failure on realistic data; extensible-vs-required binding severity reasoning; <code>onset[x]</code> partial-date handling</td></tr>
+        <tr><td><strong>CancerStaging</strong> <span class="sev i">composite</span></td><td>Graph-to-aggregate normalization; multi-source lineage; referential integrity across siblings; the strongest domain invariant in the model</td></tr>
+        <tr><td><strong>CancerSurgicalProcedure</strong></td><td>Second date polymorphism (<code>performed[x]</code> Period); a second timeline event type</td></tr>
+      </tbody>
+    </table></div>
+    <p>Four concepts, one of which is a composite. This is small enough to finish and rich enough to prove every boundary the project claims.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2 class="sec"><span class="num">06</span>Source FHIR R4 resources</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th>FHIR R4</th><th>mCODE STU4 profile</th><th>Feeds</th><th>V1 notes</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Bundle</td><td>—</td><td>Import unit</td><td>Accept <code>transaction</code>, <code>collection</code>, <code>batch</code>, <code>searchset</code>. Synthea emits <code>transaction</code> with <code>Patient</code> first.</td></tr>
+        <tr><td class="mono">Patient</td><td class="mono">mcode-cancer-patient</td><td>Patient</td><td>Read only what is needed. Do not model the full profile.</td></tr>
+        <tr><td class="mono">Condition</td><td class="mono">mcode-primary-cancer-condition</td><td>PrimaryCancerDiagnosis</td><td>Source of <code>OB-CONF-001</code>. <code>code</code> is <code>1..1</code>; <code>category:us-core</code> is <code>1..*</code> with a <em>required</em> binding.</td></tr>
+        <tr><td class="mono">Observation</td><td class="mono">mcode-tnm-stage-group</td><td>CancerStaging (head)</td><td><code>method</code> is <strong><code>1..1</code> mandatory</strong>; <code>hasMember:TNMCategory</code> <code>0..3</code>; <code>subject</code> <code>1..1</code>; <code>effective[x]</code> <code>0..1</code>.</td></tr>
+        <tr><td class="mono">Observation</td><td class="mono">…primary-tumor-category<br>…regional-nodes-category<br>…distant-metastases-category</td><td>CancerStaging (T/N/M)</td><td>Reached only via the stage group's <code>hasMember</code>. Never normalized standalone in V1.</td></tr>
+        <tr><td class="mono">Procedure</td><td class="mono">mcode-cancer-related-surgical-procedure</td><td>CancerSurgicalProcedure</td><td><code>performed[x]</code> limited to dateTime and Period.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="call verified">
+      <span class="lbl">Verified against HL7 — and it changes the design</span>
+      <p>mCODE STU4 (v4.0.0, published 16 Feb 2025) is the current published version, built on FHIR R4, with roughly 40 profiles in six thematic groups.</p>
+      <p>More consequentially: <strong>Synthea cannot emit mCODE-conformant output directly.</strong> MITRE's mCODE test datasets were produced by post-processing Synthea output through a separate <code>fhir-mapper</code> step. This is not an inconvenience — <em>it is the project's justification</em>. It means raw Synthea oncology bundles genuinely fail mCODE expectations, so the conformance engine reports real findings on real synthetic data rather than contrived ones. It is also the reason ingestion must never require mCODE (§7).</p>
+    </div>
+    <div class="call">
+      <span class="lbl">Data source recommendation</span>
+      <p>Use <strong>Synthea</strong> (Apache-2.0) breast-cancer-module output as the primary corpus — its breast cancer module is among its most developed — supplemented by small hand-authored bundles that trigger exactly one check each. Optionally cross-check against MITRE's published mCODE test data, which is distributed free of cost, privacy and security restrictions. Every fixture lands under <code>test-data/synthetic/</code> with a README naming its generator, version and licence.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s7">
+  <h2 class="sec"><span class="num">07</span>Where mCODE earns its place — and where it doesn't</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>The brief asked directly whether mCODE is necessary. The answer is <strong>yes, but in exactly one role</strong>, and getting the role wrong is the main way this project turns into architecture astronautics.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Role</th><th>Verdict</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>mCODE as the <strong>conformance yardstick</strong></td><td><span class="sev o">Genuine value</span></td><td>It supplies published, citable, mandatory-cardinality statements that synthetic data measurably fails. Without it, "data quality" would have to be invented — which is the forbidden path. This single role justifies the dependency.</td></tr>
+        <tr><td>mCODE as an <strong>export target</strong></td><td><span class="sev o">Genuine value — later</span></td><td>Projecting the canonical domain <em>back out</em> as mCODE-shaped FHIR proves the boundary is bidirectional and that normalization was not lossy in the ways that matter. Strong closing phase.</td></tr>
+        <tr><td>mCODE as the <strong>ingestion contract</strong></td><td><span class="sev e">Reject</span></td><td>Would reject nearly all realistic synthetic input, including Synthea's, and would collapse the interesting failure modes the project exists to surface.</td></tr>
+        <tr><td>mCODE as the <strong>internal domain model</strong></td><td><span class="sev e">Reject</span></td><td>Explicitly forbidden by the brief and correctly so. It would make the domain a FHIR profile with extra steps and destroy the project's thesis.</td></tr>
+        <tr><td><strong>Full profile validation</strong> via the Firely validator</td><td><span class="sev w">Postpone</span></td><td>See below — the reasoning here is subtle and worth an ADR.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="call rec">
+      <span class="lbl">Recommendation — hand-written cited checks, not a general validator</span>
+      <p>Running the real <code>StructureDefinition</code>s through a full FHIR validator sounds more rigorous, and in a production system it would be. For V1 it is the wrong call, for three reasons. <strong>Explainability:</strong> a validator emits a flat list of machine messages — the four-pane inspector needs a finding it can <em>narrate</em>, with an expected value, an actual value and a citation. <strong>Noise:</strong> required bindings to SNOMED and LOINC value sets cannot resolve without a terminology server, producing failures that say more about the test rig than the data. <strong>Churn:</strong> the validation packages version independently of the core SDK, which is a maintenance surface a portfolio project should not carry.</p>
+      <p>V1 therefore implements <strong>six named checks, each derived from a specific cited specification statement</strong>. This must be labelled honestly everywhere it surfaces: <em>"OncoBridge conformance checks — a subset of mCODE STU4"</em>, never <em>"mCODE validated."</em> Full-validator integration is a legitimate later phase and a good ADR supersession story.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s8">
+  <h2 class="sec"><span class="num">08</span>Three representations, held apart</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>This is the conceptual heart of the project. Three representations of the same clinical fact coexist permanently; none is derived-and-discarded, and none may leak into another's layer.</p>
+    <div class="reps">
+      <div class="rep">
+        <h4>① Source · raw FHIR</h4>
+        <p>The bytes as received. Immutable, verbatim, hashed, addressable. Never edited, never migrated, never "cleaned."</p>
+        <dl>
+          <dt>Owned by</dt><dd>Interop.Fhir → Infrastructure</dd>
+          <dt>Types</dt><dd><code>Hl7.Fhir.*</code> + raw <code>bytea</code></dd>
+          <dt>Lifetime</dt><dd>Permanent; the audit substrate</dd>
+        </dl>
+      </div>
+      <div class="rep">
+        <h4>② Canonical · OncoBridge domain</h4>
+        <p>Our own types, our own vocabulary, our own invariants. Deliberately lossy. Different cardinality from the source. Regenerable from ① at any time.</p>
+        <dl>
+          <dt>Owned by</dt><dd>Domain</dd>
+          <dt>Types</dt><dd>Plain C#. <strong>Zero FHIR references</strong></dd>
+          <dt>Lifetime</dt><dd>Derived; safe to rebuild</dd>
+        </dl>
+      </div>
+      <div class="rep">
+        <h4>③ Conformance · findings &amp; export</h4>
+        <p>Judgements <em>about</em> ①, plus the eventual projection of ② back out as mCODE-shaped FHIR. Never an input to ②.</p>
+        <dl>
+          <dt>Owned by</dt><dd>Interop.Fhir + Application</dd>
+          <dt>Types</dt><dd><code>Finding</code> (domain) produced by FHIR-aware checks</dd>
+          <dt>Lifetime</dt><dd>Per import batch</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="call">
+      <span class="lbl">The non-obvious decision — where findings attach</span>
+      <p>Conformance and structural findings attach to the <strong>source resource</strong>. Domain-consistency findings attach to the <strong>domain entity</strong>. This is not a filing convenience; it follows from what each finding is a statement <em>about</em>. "This <code>Observation</code> lacks its mandatory <code>method</code>" is a claim about the input and stays true forever, even if normalization is later rewritten. "This staging assessment predates its diagnosis" is a claim about <em>our normalized result</em> and could legitimately change when the mapper changes.</p>
+      <p>The practical payoff: re-running normalization with new mapper logic must invalidate domain-consistency findings and <strong>must not touch conformance findings</strong>. That falls out cleanly from this split and is a mess without it. Worth ADR-0004.</p>
+    </div>
+    <div class="pipe">
+      <div class="st"><div class="k">Ingest</div><div class="v">Bundle received</div><div class="n">hash + store verbatim</div></div>
+      <div class="st"><div class="k">Source</div><div class="v">SourceResource</div><div class="n">① immutable</div></div>
+      <div class="st"><div class="k">Normalize</div><div class="v">Mappers</div><div class="n">named + versioned</div></div>
+      <div class="st"><div class="k">Domain</div><div class="v">Canonical model</div><div class="n">② no FHIR types</div></div>
+      <div class="st"><div class="k">Assess</div><div class="v">Findings</div><div class="n">③ 4 categories</div></div>
+      <div class="st"><div class="k">Expose</div><div class="v">API → Angular</div><div class="n">4-pane inspector</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s9">
+  <h2 class="sec"><span class="num">09</span>Canonical domain vocabulary</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Deliberately small, and deliberately <em>not</em> FHIR's vocabulary. Where a name diverges from FHIR, that divergence is intentional and signals the boundary.</p>
+    <div class="tw"><table>
+      <thead><tr><th class="mono">Term</th><th>Kind</th><th>Definition &amp; why the name differs</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Patient</td><td>Entity</td><td>Subject of care within one import. Identity is batch-scoped in V1 — no cross-batch patient matching.</td></tr>
+        <tr><td class="mono">PrimaryCancerDiagnosis</td><td>Entity</td><td>Not "Condition." A diagnosis is the asserted finding; <code>Condition</code> is FHIR's container for many things.</td></tr>
+        <tr><td class="mono">CancerStaging</td><td>Aggregate</td><td>The composite. One staging assessment holding an overall group plus up to three categories — sourced from up to four <code>Observation</code>s.</td></tr>
+        <tr><td class="mono">StageCategory</td><td>Value object</td><td><code>(Axis, Code, Display, SourceRef)</code> where <code>Axis ∈ {T, N, M}</code>.</td></tr>
+        <tr><td class="mono">StagingMethod</td><td>Value object</td><td>The system used. Nullable — and its absence is exactly <code>OB-CONF-002</code>.</td></tr>
+        <tr><td class="mono">CancerSurgicalProcedure</td><td>Entity</td><td>Narrowed by name so scope creep into medications is visible in a diff.</td></tr>
+        <tr><td class="mono">CodedConcept</td><td>Value object</td><td><code>(System, Code, Display)</code>. Carried through unchanged, never rewritten. The terminology boundary in one type.</td></tr>
+        <tr><td class="mono">PartialDate</td><td>Value object</td><td><code>(Value, Precision ∈ {Year, Month, Day, Instant})</code>. See §13 — the most important type in the model.</td></tr>
+        <tr><td class="mono">PartialPeriod</td><td>Value object</td><td><code>(Start: PartialDate?, End: PartialDate?)</code>. Domain-native interval. Never collapsed to its start, boundaries never fabricated, each boundary keeps its own precision.</td></tr>
+        <tr><td class="mono">TemporalOccurrence</td><td>Value object</td><td>Either a <code>PartialDate</code> or a <code>PartialPeriod</code>, never both. Holds the exactly-one-of invariant in one place.</td></tr>
+        <tr><td class="mono">TemporalComparison</td><td>Enum</td><td><code>Before | After | Same | Indeterminate</code>. A partial-order comparison with an explicit indeterminate outcome — <strong>four</strong> outcomes, not three.</td></tr>
+        <tr><td class="mono">ImportBatch</td><td>Entity</td><td>One ingestion run — the unit of provenance, retry and reporting.</td></tr>
+        <tr><td class="mono">SourceResource</td><td>Entity</td><td>One FHIR resource as received. The immutable audit substrate.</td></tr>
+        <tr><td class="mono">Lineage</td><td>Entity</td><td>Domain entity ← transformation ← source resource(s).</td></tr>
+        <tr><td class="mono">Finding</td><td>Value object</td><td>Never "Error", never "Alert", never "Violation." Neutral by mandate (§3).</td></tr>
+        <tr><td class="mono">CheckId</td><td>Value object</td><td>Stable identifier, e.g. <code>OB-CONF-002</code>. Never renumbered once published.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="s10">
+  <h2 class="sec"><span class="num">10</span>Provenance model</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Three tiers, each answering a different question.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Tier</th><th>Answers</th><th>Key fields</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">ImportBatch</td><td>When did this arrive, from where, and what happened to it?</td><td><code>Id</code>, <code>SourceSystemLabel</code>, <code>ReceivedAt</code>, <code>FileName</code>, <strong><code>RawPayload</code> (<code>bytea</code>, exact bytes)</strong>, <code>ContentHash</code> (SHA-256 over exactly those bytes), <code>BundleType</code>, <code>EntryCount</code>, <code>Status</code>, <code>NormalizerVersion</code></td></tr>
+        <tr><td class="mono">SourceResource</td><td>Exactly what did we receive, byte for byte?</td><td><code>Id</code>, <code>BatchId</code>, <code>ResourceType</code>, <code>SourceLogicalId</code>, <code>FullUrl</code>, <code>ContentHash</code>, <code>EntryIndex</code>, and (P2) a parsed <code>jsonb</code> copy for querying — <em>not</em> the audit representation</td></tr>
+        <tr><td class="mono">Lineage</td><td>Which sources, through which transformation, produced this value?</td><td><code>DomainEntityType</code>, <code>DomainEntityId</code>, <code>FieldPath</code> (nullable), <code>SourceResourceId</code>, <code>TransformationName</code>, <code>TransformationVersion</code></td></tr>
+      </tbody>
+    </table></div>
+    <div class="call rec">
+      <span class="lbl">The real design tension — lineage granularity</span>
+      <p>Field-level lineage for every property is more impressive in a diagram and considerably worse in practice: it multiplies row count by an order of magnitude, couples every mapper to a lineage-recording API, and produces a UI panel nobody reads.</p>
+      <p><strong>Recommendation: entity-level lineage as the default, with field-level records emitted only where a domain entity draws from more than one source resource.</strong> In V1 that condition is met by exactly one concept — <code>CancerStaging</code>, which pulls its group from one <code>Observation</code> and each category from another. So field-level lineage appears precisely where it carries information, and nowhere else. <code>FieldPath</code> is nullable for exactly this reason: <code>null</code> means "this entity, wholly, from this source."</p>
+      <p>The payoff is visible in the inspector: the staging composite shows four lineage rows naming four distinct source observations. That single screen demonstrates graph-to-aggregate normalization and multi-source provenance simultaneously — and it is the screenshot that belongs in the README.</p>
+    </div>
+    <div class="call">
+      <span class="lbl">Do not use FHIR Provenance internally</span>
+      <p>FHIR R4 <code>Provenance</code> is a reasonable <em>export</em> projection — <code>target</code> is <code>1..*</code>, <code>recorded</code> is <code>1..1</code>, <code>entity.role</code> includes <code>derivation</code>, and the specification explicitly contemplates "an automaton that transforms input," which is precisely what a normalizer is. But adopting it as the internal model would repeat the mistake the brief warns against in §7. Model provenance in OncoBridge's own terms; project to <code>Provenance</code> at the export boundary in a later phase.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s11">
+  <h2 class="sec"><span class="num">11</span>Data-quality semantics</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Four finding categories, ordered by the pipeline stage at which each becomes detectable. The ordering matters: a category can only be evaluated if every category above it passed.</p>
+    <div class="tw"><table>
+      <thead><tr><th class="mono">Category</th><th>Detected at</th><th>Question</th><th>Severities</th><th>Blocks normalization?</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Structural</td><td>Parse</td><td>Is this valid FHIR R4 at all?</td><td><span class="sev e">Error</span></td><td>Yes — resource never enters the domain</td></tr>
+        <tr><td class="mono">Conformance</td><td>Post-parse</td><td>Does it meet the mCODE STU4 expectation?</td><td><span class="sev e">Error</span> <span class="sev w">Warning</span></td><td>No</td></tr>
+        <tr><td class="mono">ReferentialIntegrity</td><td>Bundle resolution</td><td>Do its references resolve, and to the right thing?</td><td><span class="sev e">Error</span> <span class="sev w">Warning</span></td><td>Partially — may leave an aggregate incomplete</td></tr>
+        <tr><td class="mono">DomainConsistency</td><td>Post-normalization</td><td>Is the normalized result internally coherent?</td><td><span class="sev w">Warning</span></td><td>No</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Severity is derived, not chosen</h3>
+    <p>Assigning severity by intuition is how a quality tool becomes untrustworthy. The rule is mechanical:</p>
+    <ul>
+      <li><strong>Error</strong> — the specification says <em>mandatory</em> (min cardinality ≥ 1), or the check is a pure structural/graph fact with no interpretation.</li>
+      <li><strong>Warning</strong> — the specification says <em>Must Support</em>, or the binding is <em>extensible</em> rather than <em>required</em>, or the finding is a domain-consistency observation.</li>
+      <li><strong>Information</strong> — coverage and context notes only.</li>
+    </ul>
+    <div class="call">
+      <span class="lbl">The fifth outcome — and it is not a finding</span>
+      <p>A resource type outside V1 scope, or an <code>onset[x]</code> arriving as <code>Age</code> when V1 handles <code>dateTime</code> and <code>Period</code>, produces a <strong><code>CoverageNote</code></strong> — a distinct type, not a <code>Finding</code>. Conflating "we did not look at this" with "this is wrong" is the most common failure mode of real data-quality tooling, and it destroys user trust in every other number on the screen. Keeping them as separate types makes the conflation impossible rather than merely discouraged.</p>
+    </div>
+    <h3>Finding shape</h3>
+    <p>Every finding carries: <code>CheckId</code>, <code>Category</code>, <code>Severity</code>, <code>Message</code> (deterministic template — same input, same string, always), <code>Target</code> (source resource <em>or</em> domain entity per §8), <code>Expected</code> / <code>Actual</code> where meaningful, and <code>Citation</code> — the published specification statement it derives from. <strong><code>Citation</code> is not decoration.</strong> It is what makes each check auditable, what proves the rules were derived from public standards rather than from anywhere else (§20), and what lets a reviewer verify a claim in thirty seconds.</p>
+  </div>
+</section>
+
+<section id="s12">
+  <h2 class="sec"><span class="num">12</span>The six V1 checks</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>All six are deterministic, individually citable, and free of medical judgement. Every category from §11 has at least one.</p>
+    <div class="tw"><table>
+      <thead><tr><th class="mono">ID</th><th>Check</th><th>Severity</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono"><strong>OB-STR-001</strong></td>
+          <td><strong>Bundle entry does not parse as FHIR R4.</strong> An entry's JSON fails deserialization into a known R4 resource.</td>
+          <td><span class="sev e">Error</span></td>
+          <td>Structural. Zero interpretation. The resource is recorded verbatim but does not enter the domain.</td>
+        </tr>
+        <tr>
+          <td class="mono"><strong>OB-REF-001</strong></td>
+          <td><strong>Reference does not resolve within the bundle.</strong> A <code>Reference.reference</code> on an in-scope resource matches no entry <code>fullUrl</code>, contained resource, or resolvable identifier in the same bundle.</td>
+          <td><span class="sev e">Error</span></td>
+          <td>Pure graph fact. Scoped to <em>within the bundle</em> — V1 makes no external resolution attempt, and says so in the message.</td>
+        </tr>
+        <tr>
+          <td class="mono"><strong>OB-REF-002</strong></td>
+          <td><strong>Staging group members disagree on subject.</strong> A <code>TNMStageGroup</code>'s <code>hasMember</code> targets resolve to observations whose <code>subject</code> differs from the group's own.</td>
+          <td><span class="sev e">Error</span></td>
+          <td>Verified: <code>subject</code> is <code>1..1</code>, <code>hasMember:TNMCategory</code> is <code>0..3</code>. A graph-consistency check with real teeth — it is the check that would catch a genuine record-linkage defect.</td>
+        </tr>
+        <tr>
+          <td class="mono"><strong>OB-CONF-001</strong></td>
+          <td><strong>Primary cancer condition lacks a required category.</strong> No <code>Condition.category</code> coding satisfies the US Core problem/health-concern slice.</td>
+          <td><span class="sev e">Error</span></td>
+          <td>Verified: <code>category:us-core</code> is <code>1..*</code> with a <strong>required</strong> binding in mCODE STU4. Error is therefore justified by cardinality, not opinion. Fires on real Synthea data, which commonly emits <code>encounter-diagnosis</code>.</td>
+        </tr>
+        <tr>
+          <td class="mono"><strong>OB-CONF-002</strong></td>
+          <td><strong>TNM stage group omits staging method.</strong> <code>Observation.method</code> is absent.</td>
+          <td><span class="sev e">Error</span></td>
+          <td>Verified: <code>method</code> is <strong><code>1..1</code> mandatory</strong> on the STU4 <code>TNMStageGroup</code> profile. The cleanest check in the set — unambiguously mandatory, and routinely absent in synthetic data.</td>
+        </tr>
+        <tr>
+          <td class="mono"><strong>OB-DOM-001</strong></td>
+          <td><strong>Staging assessment precedes diagnosis onset.</strong> Where both dates are known <em>and comparable</em>, staging <code>effective</code> is <code>Before</code> diagnosis <code>onset</code>.</td>
+          <td><span class="sev w">Warning</span></td>
+          <td>Temporal ordering only — no clinical claim. Warning because legitimate backdating exists. <strong>Fires only on <code>TemporalComparison.Before</code>, never on <code>Indeterminate</code></strong> (§13).</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="call rec">
+      <span class="lbl">Stretch check, if Phase 4 has room</span>
+      <p><code>OB-CONF-003</code> — <strong>cancer condition code is not drawn from an expected code system</strong> (<span class="sev w">Warning</span>). <code>Condition.code</code> has an <strong>extensible</strong> binding in STU4, so a non-matching code is explicitly <em>not</em> an error — and getting that severity right is itself a demonstration of standards literacy worth more than the check. Implemented as a <em>code-system-URI</em> membership test (SNOMED CT or ICD-10-CM), never a value-set expansion, so it needs no terminology server. The message must state that limitation plainly rather than implying value-set validation.</p>
+    </div>
+    <div class="call cut">
+      <span class="lbl">Explicitly not checked in V1</span>
+      <p>No check reads a clinical <em>value</em> and judges it. Nothing evaluates whether a stage is plausible for a diagnosis, whether a procedure suits a stage, or whether any value falls in a reference range. Those require medical judgement, and their absence is a design decision to be stated in the README — not an omission to be quietly filled later.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s13">
+  <h2 class="sec"><span class="num">13</span>Date and time semantics</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>This is the most underestimated problem in the project and, handled properly, the strongest pure domain-modelling showcase in it.</p>
+    <h3>The problem</h3>
+    <p>FHIR <code>date</code> and <code>dateTime</code> are <strong>variable precision</strong>: <code>2019</code>, <code>2019-03</code>, <code>2019-03-14</code> and <code>2019-03-14T10:00:00+02:00</code> are all valid. Mapping any of these to <code>DateTime</code> silently fabricates precision — <code>2019</code> becomes <code>2019-01-01T00:00:00</code>, and every downstream comparison is then confidently wrong. Almost every naive FHIR integration has this bug.</p>
+    <h3>The model</h3>
+    <ul>
+      <li><strong><code>PartialDate</code></strong> — <code>(Value, Precision ∈ {Year, Month, Day, Instant})</code>. Precision is never inferred and never widened.</li>
+      <li><strong>Three-valued comparison</strong> — <code>Compare(a, b) → Before | After | Same | Indeterminate</code>. <code>2019</code> vs <code>2019-03</code> is <code>Indeterminate</code>: March 2019 is inside 2019, so no ordering exists. Returning <code>Before</code> or <code>After</code> there would be a lie the type system can prevent.</li>
+      <li><strong>Rules consume the four-outcome result honestly.</strong> <code>OB-DOM-001</code> fires only on <code>Before</code>. Indeterminate never produces a finding — it may produce a <code>CoverageNote</code>. This single rule is the clearest evidence in the codebase that the problem was understood rather than papered over.</li>
+      <li><strong>Timezones</strong> — preserve offsets when present; never assume server-local. Persist instants as <code>timestamptz</code>, partials as value plus precision tag.</li>
+    </ul>
+    <h3>Three distinct clocks — never conflated</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Clock</th><th>Meaning</th><th>Sources</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Clinical time</strong></td><td>When the thing happened</td><td><code>Condition.onset[x]</code>, <code>Observation.effective[x]</code>, <code>Procedure.performed[x]</code></td><td>Timeline ordering; <code>OB-DOM-001</code></td></tr>
+        <tr><td><strong>Authoring time</strong></td><td>When the source system recorded it</td><td><code>Condition.recordedDate</code>, mCODE <code>assertedDate</code> extension</td><td>Context only; never ordering</td></tr>
+        <tr><td><strong>System time</strong></td><td>When OncoBridge touched it</td><td><code>ImportBatch.ReceivedAt</code>, <code>NormalizedAt</code></td><td>Provenance only; always full instant</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>V1 polymorphism scope:</strong> <code>onset[x]</code> and <code>performed[x]</code> support <code>dateTime</code> and <code>Period</code> only. <code>Age</code>, <code>Range</code> and <code>string</code> produce a <code>CoverageNote</code> — never a finding, because the data is not wrong; V1 simply does not read it.</p>
+  </div>
+</section>
+
+<section id="s14">
+  <h2 class="sec"><span class="num">14</span>Terminology boundary</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Drawn deliberately tight. Terminology is where portfolio projects go to die: it is unbounded, and no amount of effort produces a visibly better result.</p>
+    <div class="tw"><table>
+      <thead><tr><th>V1 does</th><th>V1 does not</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Store codes as <code>CodedConcept(System, Code, Display)</code>, carried through <strong>unchanged</strong> — no code is ever rewritten</td>
+          <td>Run or embed a terminology server</td>
+        </tr>
+        <tr>
+          <td>Recognize code systems by <strong>URI only</strong> — <code>http://snomed.info/sct</code>, <code>http://loinc.org</code>, <code>http://hl7.org/fhir/sid/icd-10-cm</code>, <code>http://unitsofmeasure.org</code></td>
+          <td>Expand value sets or test membership</td>
+        </tr>
+        <tr>
+          <td>Use one small, checked-in, cited lookup table for a single purpose: identifying staging observations by LOINC code (<code>21908-9</code>, <code>21902-2</code>, <code>21914-7</code> for the stage group, plus the T/N/M category codes)</td>
+          <td>Perform subsumption, hierarchy or concept mapping</td>
+        </tr>
+        <tr>
+          <td>Version and cite that table as data, in-repo, reviewable in a diff</td>
+          <td>Translate between code systems</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div class="call rec">
+      <span class="lbl">Licensing constraint that shapes the code</span>
+      <p>SNOMED International charges nothing for Affiliate Licensing within Member countries, but a licence is still required, licences are <strong>per-country</strong>, and non-Member use may attract a fee. LOINC carries its own terms. The practical rule that follows: <strong>the repository may contain code <em>references</em>, never terminology <em>content</em>.</strong> Storing the code <code>254837009</code> that appeared in a synthetic bundle is fine. Checking in SNOMED description files, hierarchy extracts or a display-name lookup table is redistribution and must not happen.</p>
+      <p>This is a real constraint with a real design consequence: <code>CodedConcept.Display</code> is populated <em>only</em> from what the source bundle supplied. OncoBridge never enriches a display name from its own table. That is a licensing-driven decision, and it is worth one line in the ADR so a reviewer sees it was deliberate.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s15">
+  <h2 class="sec"><span class="num">15</span>Architectural boundaries</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th>Concern</th><th>Lives in</th><th>May reference</th><th>Must never</th></tr></thead>
+      <tbody>
+        <tr><td>FHIR ingestion &amp; parsing</td><td class="mono">Interop.Fhir</td><td>Firely SDK, Domain</td><td>Reference Infrastructure or EF</td></tr>
+        <tr><td>Normalization / mapping</td><td class="mono">Interop.Fhir</td><td>Firely SDK, Domain</td><td>Touch the database or emit findings it wasn't asked for</td></tr>
+        <tr><td>Canonical domain</td><td class="mono">Domain</td><td><strong>Nothing</strong></td><td>Reference <code>Hl7.Fhir.*</code>, EF Core, or ASP.NET — <em>enforced by test</em></td></tr>
+        <tr><td>Conformance checks</td><td class="mono">Interop.Fhir</td><td>Firely SDK, Domain (for <code>Finding</code>)</td><td>Read the normalized model — they judge the source, not the result</td></tr>
+        <tr><td>Domain-consistency checks</td><td class="mono">Domain</td><td>Domain only</td><td>See FHIR types at all</td></tr>
+        <tr><td>Use cases / orchestration</td><td class="mono">Application</td><td>Domain + ports</td><td>Expose FHIR types in any public signature</td></tr>
+        <tr><td>Persistence</td><td class="mono">Infrastructure</td><td>Domain, Application ports, EF Core, Npgsql</td><td>Leak <code>jsonb</code> operators past a repository interface</td></tr>
+        <tr><td>HTTP / OpenAPI</td><td class="mono">Api</td><td>Application, Infrastructure (composition root only)</td><td>Return domain entities directly — DTOs always</td></tr>
+        <tr><td>Presentation</td><td class="mono">oncobridge-web</td><td>Generated API client</td><td>Contain any transformation logic — if the UI must compute it, the API owes it</td></tr>
+      </tbody>
+    </table></div>
+    <div class="call">
+      <span class="lbl">One test worth more than three projects</span>
+      <p><code>OncoBridge.Domain</code> must not reference <code>Hl7.Fhir.*</code>, and that is asserted by an automated architecture test, not by convention. It is the mechanism that <em>proves</em> the boundary the entire project claims to demonstrate — and it is the first thing a sharp reviewer will look for. A boundary defended only by discipline is a boundary that has already been crossed.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s16">
+  <h2 class="sec"><span class="num">16</span>Solution structure</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Modular monolith. Five .NET projects, one Angular app, three test projects. Folders and namespaces carry sub-structure; new projects are added only when a <em>reference-direction</em> problem demands one.</p>
+    <pre class="tree"><b>OncoBridge.sln</b>
+├── <b>src/</b>
+│   ├── <b>OncoBridge.Domain</b>              <i>entities, value objects, invariants, Finding</i>
+│   │                                   <em>↳ zero dependencies. Enforced by test.</em>
+│   ├── <b>OncoBridge.Application</b>         <i>use cases, port interfaces, orchestration</i>
+│   ├── <b>OncoBridge.Interop.Fhir</b>        <i>the ONLY project referencing Hl7.Fhir.*</i>
+│   │     ├── Ingestion/                <i>bundle reading, entry extraction, hashing</i>
+│   │     ├── Normalization/            <i>mappers, named + versioned</i>
+│   │     └── Conformance/              <i>OB-STR-*, OB-REF-*, OB-CONF-* checks</i>
+│   ├── <b>OncoBridge.Infrastructure</b>      <i>EF Core, Npgsql, migrations, repositories</i>
+│   ├── <b>OncoBridge.Api</b>                 <i>endpoints, DTOs, OpenAPI, composition root</i>
+│   └── <b>oncobridge-web/</b>                <i>Angular — inspector, then timeline</i>
+├── <b>tests/</b>
+│   ├── <b>OncoBridge.Domain.Tests</b>        <i>+ the architecture boundary test</i>
+│   ├── <b>OncoBridge.Interop.Fhir.Tests</b>  <i>golden-file mapping, per-check fixtures</i>
+│   └── <b>OncoBridge.Api.Tests</b>           <i>WebApplicationFactory + Testcontainers</i>
+├── <b>test-data/synthetic/</b>               <i>fixtures + README naming generator &amp; licence</i>
+└── <b>docs/adr/</b>                          <i>ADR-0001 … ADR-0009</i></pre>
+    <h3>Projects deliberately not created</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Rejected</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">OncoBridge.Quality</td><td>The most tempting and the most wrong. Quality checks split naturally by <em>input type</em>: conformance checks need FHIR types, domain-consistency checks need domain types. A single Quality project would either drag FHIR into itself — breaking the central boundary — or become an empty shell. <strong>The <code>Finding</code> model lives in Domain; each check lives where its input lives.</strong></td></tr>
+        <tr><td class="mono">Ingestion / Normalization / Conformance <em>as separate projects</em></td><td>One cohesive concern — translating between FHIR and OncoBridge — with a single external dependency. Three projects would triple the assembly count without adding a boundary. Folders now; split only if a genuine reference-direction problem appears.</td></tr>
+        <tr><td class="mono">OncoBridge.Contracts</td><td>DTOs are consumed by exactly one caller. Premature.</td></tr>
+        <tr><td class="mono">One project per concept</td><td>Explicitly rejected by the brief, and correctly.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="s17">
+  <h2 class="sec"><span class="num">17</span>PostgreSQL vs SQL Server</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th>Factor</th><th>PostgreSQL</th><th>SQL Server</th><th>Weight</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Queryable resource JSON</strong> (not the audit record — see correction below)</td><td><code>jsonb</code> — binary, indexable via GIN, first-class operators</td><td><code>nvarchar(max)</code> + <code>JSON_VALUE</code>; the native JSON type is recent and less established</td><td><span class="sev o">Decisive</span></td></tr>
+        <tr><td><strong>Reviewer can run it</strong></td><td>Native arm64 images; <code>docker compose up</code> works on Apple Silicon unmodified</td><td>Linux container arm64 support has been partial; historically needed emulation</td><td><span class="sev o">High</span></td></tr>
+        <tr><td><strong>Licensing clarity</strong></td><td>No edition matrix, nothing to explain in a public README</td><td>Developer/Express edition caveats need explaining</td><td><span class="sev w">Medium</span></td></tr>
+        <tr><td><strong>Date/offset mapping</strong></td><td><code>timestamptz</code> ↔ <code>DateTimeOffset</code> maps cleanly — directly relevant to §13</td><td><code>datetimeoffset</code> is fine</td><td><span class="sev w">Low–Medium</span></td></tr>
+        <tr><td><strong>Enterprise .NET familiarity</strong></td><td>Common but not default</td><td>The default in many .NET shops — some hiring signal</td><td><span class="sev w">Medium</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="call rec">
+      <span class="lbl">Recommendation — PostgreSQL</span>
+      <p><strong>Corrected after review:</strong> the original draft claimed <code>jsonb</code> could serve as the byte-for-byte audit record. It cannot — <code>jsonb</code> is a <em>parsed</em> form and may reorder keys, drop whitespace and renormalise numbers, so a digest over it will not match one over the received bytes. The audit record is <code>ImportBatch.RawPayload</code> stored as <code>bytea</code>; <code>jsonb</code> earns its place only for semantic querying of parsed resources. See ADR-0006. The <code>jsonb</code> argument is therefore weaker than first stated but still real, and PostgreSQL still wins on the practical grounds below. The Apple Silicon / one-command-run argument is the tiebreaker: a portfolio project a reviewer cannot start in thirty seconds has failed at its actual job.</p>
+      <p><strong>Stated honestly:</strong> if the target audience is a Microsoft-stack shop, this is a real trade. The mitigation is architectural rather than aspirational — keep every raw-JSON query behind a repository interface in Infrastructure, so no <code>jsonb</code> operator ever appears in Application or Domain. With that discipline the provider swap is roughly a day's work. Without it, it is a rewrite. This is precisely why the "must never leak <code>jsonb</code> past a repository interface" rule appears in §15.</p>
+      <p>Verified on this machine: Docker 28.5.1 present, no local PostgreSQL — so compose it, and pin the image tag.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s18">
+  <h2 class="sec"><span class="num">18</span>First acceptance scenario</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>One synthetic bundle in, four inspectable layers out. The fixture is <strong>engineered to fail in exactly three named ways</strong> — a scenario that only proves the happy path proves very little, and the failure paths are the product.</p>
+    <div class="gherkin"><b>GIVEN</b> a synthetic FHIR R4 transaction Bundle containing
+        1 <u>Patient</u>
+        1 <u>Condition</u>      primary breast cancer
+                          <i>category = encounter-diagnosis</i>   ← deliberate
+        1 <u>Observation</u>    TNMStageGroup
+                          hasMember → 3 category Observations (T, N, M)
+                          <i>method ABSENT</i>                     ← deliberate
+        3 <u>Observation</u>    T, N, M categories
+        1 <u>Procedure</u>      cancer-related surgical
+        1 dangling <u>Reference</u> to an Observation not in the bundle  ← deliberate
+
+<b>WHEN</b>  POST /api/v1/imports   with that bundle
+
+<b>THEN</b>  201 returns an importBatchId
+
+<b>AND</b>   GET /api/v1/imports/{id}
+        → 7 source resources stored verbatim, each with a SHA-256 content hash
+
+<b>AND</b>   GET /api/v1/patients/{patientId}/record
+        → 1 Patient
+          1 PrimaryCancerDiagnosis
+          1 CancerStaging composite with T, N and M resolved from 3 sources
+          1 CancerSurgicalProcedure
+
+<b>AND</b>   GET /api/v1/imports/{id}/findings   returns exactly three
+        <u>OB-CONF-001</u>  Error  → Condition        missing required us-core category
+        <u>OB-CONF-002</u>  Error  → TNMStageGroup    missing mandatory method
+        <u>OB-REF-001</u>   Error  → dangling reference does not resolve in bundle
+
+<b>AND</b>   GET /api/v1/domain/{stagingId}/provenance
+        → 4 lineage records naming the 4 source Observations
+          and the transformation that produced the composite
+
+<b>AND</b>   the Angular inspector renders, for that staging composite
+        SOURCE → NORMALIZED → QUALITY → PROVENANCE</div>
+    <p><strong>Why this scenario:</strong> it exercises every architectural boundary in §15, produces at least one finding from three of the four categories in §11, and its provenance assertion is only satisfiable if graph-to-aggregate normalization and multi-source lineage both genuinely work. It cannot be faked by a resource renderer. <strong>This scenario is the phase gate</strong> — until it passes end to end, no new concept is added.</p>
+  </div>
+</section>
+
+<section id="s19">
+  <h2 class="sec"><span class="num">19</span>Testing strategy</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th>Layer</th><th>Approach</th><th>Investment</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Domain</strong></td><td>Pure unit tests. Heaviest single investment on <code>PartialDate</code> temporal comparison and the <code>CancerStaging</code> invariants. <strong>Property-based tests</strong> (CsCheck / FsCheck) are genuinely justified for date comparison — it is a partial order over variable-precision intervals, exactly the shape where example-based tests miss cases.</td><td><span class="sev o">High</span></td></tr>
+        <tr><td><strong>Mapping</strong></td><td><strong>Golden-file tests.</strong> Input: checked-in synthetic bundle. Output: serialized domain snapshot. Diffable in review, so a mapper change shows its blast radius in the PR. Highest value-per-line in the project.</td><td><span class="sev o">High</span></td></tr>
+        <tr><td><strong>Conformance checks</strong></td><td>One minimal fixture per <code>CheckId</code> triggering <em>exactly</em> that check — plus a clean fixture triggering none. This is what makes the checks auditable rather than merely present.</td><td><span class="sev o">High</span></td></tr>
+        <tr><td><strong>Integration</strong></td><td><code>WebApplicationFactory</code> + <strong>Testcontainers for PostgreSQL</strong>. Real engine, real migrations. <strong>Never the EF in-memory provider</strong> — it misrepresents <code>jsonb</code> and relational constraints, so it will pass while production fails.</td><td><span class="sev w">Medium</span></td></tr>
+        <tr><td><strong>API</strong></td><td>Snapshot the generated <code>openapi.json</code>; fail the build on unreviewed drift. Cheap, and it makes the API contract a reviewed artefact.</td><td><span class="sev w">Medium</span></td></tr>
+        <tr><td><strong>Architecture</strong></td><td>One test: <code>Domain</code> must not reference <code>Hl7.Fhir.*</code>. Highest value-to-effort ratio in the repository (§15).</td><td><span class="sev o">High</span></td></tr>
+        <tr><td><strong>Frontend</strong></td><td>Component tests for the four-pane inspector's rendering states (including empty and error). <strong>Exactly one</strong> Playwright E2E covering §18.</td><td><span class="sev e">Low — deliberately</span></td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Where not to spend:</strong> broad UI E2E coverage. It rots fastest, and the portfolio value of this project is in the backend boundaries. One E2E proving the acceptance scenario is worth more than twenty brittle ones.</p>
+  </div>
+</section>
+
+<section id="s20">
+  <h2 class="sec"><span class="num">20</span>Risk register</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Regulatory language.</strong> Wording like "validates", "clinical", "assessment", "risk" can read as a medical-device claim under EU MDR software-qualification guidance. This is the single highest <em>actual</em> risk in the project.</td>
+          <td><span class="sev e">High</span></td>
+          <td>Disclaimer in README first paragraph, <code>DISCLAIMER.md</code>, and a persistent UI banner — but the effective control is the <strong>naming discipline in §3, enforced in code</strong>. A disclaimer nobody reads is weaker than an identifier nobody can misread. Consider a CI grep for forbidden terms in public identifiers.</td>
+        </tr>
+        <tr>
+          <td><strong>Employer / provenance-of-ideas boundary.</strong> The author works in a health-research setting; the repository must be self-evidently independent of any employer data or internal rules.</td>
+          <td><span class="sev e">High</span></td>
+          <td>Every check carries a <code>Citation</code> to a public HL7 statement (§11). That field does double duty: it is a UX feature <em>and</em> an audit trail proving independent derivation from public standards. Add a short README note stating the design derives from published HL7 specifications and Synthea. No employer data, schemas or rules enter the repo — ever.</td>
+        </tr>
+        <tr>
+          <td><strong>Terminology redistribution.</strong> Checking in SNOMED or LOINC content is a licence breach.</td>
+          <td><span class="sev w">Medium</span></td>
+          <td>Rule from §14: references, never content. <code>CodedConcept.Display</code> populated only from the source bundle. Do not vendor the mCODE IG package without checking its terms — reference profiles by canonical URL.</td>
+        </tr>
+        <tr>
+          <td><strong>Untrusted upload.</strong> Bundle upload is an untrusted-input surface.</td>
+          <td><span class="sev w">Medium</span></td>
+          <td>Cap request size, cap entry count, cap reference-resolution depth, <strong>accept JSON only — no FHIR XML in V1</strong> (which eliminates the XXE class outright rather than defending against it), and never echo raw input into error responses. Strongest control: <strong>ship V1 as a locally-run repository with no public upload endpoint deployed.</strong> That removes the entire risk class rather than managing it.</td>
+        </tr>
+        <tr>
+          <td><strong>Privacy.</strong></td>
+          <td><span class="sev o">Low</span></td>
+          <td>Synthetic only, by construction. All fixtures under <code>test-data/synthetic/</code> with a provenance README. A <code>CONTRIBUTING.md</code> line forbidding real data.</td>
+        </tr>
+        <tr>
+          <td><strong>Dependency licensing.</strong></td>
+          <td><span class="sev o">Low</span></td>
+          <td>Verified: Firely .NET SDK is BSD-3-Clause; Synthea is Apache-2.0; MITRE mCODE test data is published free of cost, privacy and security restrictions. All compatible with a permissive public repo.</td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="s21">
+  <h2 class="sec"><span class="num">21</span>What would make this a NO-GO</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Assessed honestly, including the ones that were live risks until a design decision removed them.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Condition</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Quality checks require clinical judgement to be interesting.</strong> Would be a genuine NO-GO — it would put the project on the wrong side of the brief's hardest boundary.</td><td><span class="sev o">Not triggered.</span> Structural, conformance, referential and temporal-ordering checks are sufficient, and §12 demonstrates six of them without a single clinical interpretation.</td></tr>
+        <tr><td><strong>Conformance checking requires a terminology server to say anything at all.</strong> Would gut V1 and force either a large infrastructure dependency or fabricated results.</td><td><span class="sev o">Not triggered — by design.</span> Checks were chosen against <em>mandatory cardinality</em> and <em>code-system URIs</em>, neither of which needs value-set expansion. This constraint drove the check selection in §12 rather than being discovered afterwards.</td></tr>
+        <tr><td><strong>mCODE requires input conformance to be useful.</strong></td><td><span class="sev o">Not triggered.</span> The verified fact that Synthea cannot emit mCODE directly turns this from a problem into the project's core justification (§6).</td></tr>
+        <tr><td><strong>Reviewer cannot run it in one command.</strong></td><td><span class="sev w">Not a NO-GO, but a release blocker.</span> A portfolio project that cannot be started has failed at its only job. <code>docker compose up</code> must work on a clean machine, and this is why PostgreSQL wins §17.</td></tr>
+        <tr><td><strong>Scope creep before the vertical slice closes.</strong> Medications, genomics, multi-patient cohorts, or a second UI view added before §18 passes end to end.</td><td><span class="sev e">The most likely actual failure mode.</span> Not a NO-GO today — a standing hazard. Mitigation: §18 is a hard gate. An incomplete slice with five concepts is worth far less than a complete one with four.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="s22">
+  <h2 class="sec"><span class="num">22</span>First ADRs</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="tw"><table>
+      <thead><tr><th class="mono">ADR</th><th>Decision</th><th>The interesting part</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">0001</td><td>The canonical domain model is independent of FHIR</td><td>Enforced by architecture test, not convention. The project's thesis.</td></tr>
+        <tr><td class="mono">0002</td><td>mCODE is a conformance and export boundary, never the ingestion contract</td><td>Justified by the verified Synthea/mCODE gap.</td></tr>
+        <tr><td class="mono">0003</td><td>Source FHIR is stored verbatim and immutably; normalization is derived and re-runnable</td><td>Makes mapper changes safe and re-playable.</td></tr>
+        <tr><td class="mono">0004</td><td>Four finding categories; conformance findings attach to source resources, domain-consistency findings to domain entities</td><td>Determines what re-normalization invalidates. Non-obvious and load-bearing.</td></tr>
+        <tr><td class="mono">0005</td><td>Variable-precision temporal model: <code>PartialDate</code>, <code>PartialPeriod</code>, and <code>TemporalComparison</code> with an explicit indeterminate outcome</td><td>Rules act only on definite results; <code>Indeterminate</code> never fires a finding.</td></tr>
+        <tr><td class="mono">0006</td><td>PostgreSQL; raw payload as <code>bytea</code>, <code>jsonb</code> only for queryable copies</td><td>Corrects the original draft: <code>jsonb</code> preserves meaning, not bytes. Includes the honest SQL Server trade.</td></tr>
+        <tr><td class="mono">0007</td><td>Modular monolith, five .NET projects; boundary enforced by test</td><td>Documents the projects deliberately <em>not</em> created, and why.</td></tr>
+        <tr><td class="mono">0008</td><td>Hand-written cited conformance checks, not a general FHIR profile validator</td><td>Explicitly reversible — a strong supersession candidate later.</td></tr>
+        <tr><td class="mono">0009</td><td>No terminology server in V1; codes carried through unchanged, recognized by system URI</td><td>Includes the SNOMED/LOINC redistribution constraint driving <code>Display</code> handling.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="s23">
+  <h2 class="sec"><span class="num">23</span>Implementation phases</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="phases">
+      <div class="ph"><div class="pn">P1</div><div><div class="pt">Domain foundation</div><div class="pd">Solution skeleton, canonical entities and value objects, <code>PartialDate</code> / <code>PartialPeriod</code> / <code>TemporalComparison</code>, <code>Finding</code> model, architecture boundary test. No FHIR, no database, no API.</div><div class="pg">Gate — property-based date tests pass; boundary test passes</div></div></div>
+      <div class="ph"><div class="pn">P2</div><div><div class="pt">Ingestion &amp; provenance</div><div class="pd">Bundle reading, verbatim source storage with hashing, <code>ImportBatch</code> / <code>SourceResource</code> / <code>Lineage</code>, EF Core + Npgsql + migrations, Testcontainers harness. No normalization yet.</div><div class="pg">Gate — <b>(a)</b> exact byte round-trip of <code>RawPayload</code> from <code>bytea</code>; <b>(b)</b> parsed resources queryable in <code>jsonb</code>. (b) does not prove (a)</div></div></div>
+      <div class="ph"><div class="pn">P3</div><div><div class="pt">Normalization</div><div class="pd">Mappers for Patient, PrimaryCancerDiagnosis, CancerStaging composite, CancerSurgicalProcedure. Golden-file tests. The staging composite is the hard part and should be built first.</div><div class="pg">Gate — 4 source Observations collapse into 1 composite with 4 lineage rows</div></div></div>
+      <div class="ph"><div class="pn">P4</div><div><div class="pt">Quality engine</div><div class="pd">The six checks from §12, each with an isolating fixture and a citation. <code>CoverageNote</code> as a distinct type from <code>Finding</code>.</div><div class="pg">Gate — each check fires on its fixture and on no other</div></div></div>
+      <div class="ph"><div class="pn">P5</div><div><div class="pt">API</div><div class="pd">Import, record, findings and provenance endpoints. OpenAPI with snapshot test. Integration tests against real PostgreSQL.</div><div class="pg">Gate — §18 passes end to end at the API layer</div></div></div>
+      <div class="ph"><div class="pn">P6</div><div><div class="pt">Angular — inspector first</div><div class="pd">The four-pane record inspector, then the longitudinal timeline. <strong>Inspector before timeline</strong>: the inspector demonstrates the architecture, the timeline demonstrates taste. If time runs short, the inspector is the one that must exist.</div><div class="pg">Gate — §18 passes as one Playwright E2E</div></div></div>
+      <div class="ph"><div class="pn">P7A</div><div><div class="pt">Release polish — mandatory</div><div class="pd">README, ADRs, Docker Compose one-command run, screenshots, CI, final cleanup. <strong>This is what V1 completion requires.</strong></div><div class="pg">Gate — <code>docker compose up</code> on a clean machine</div></div></div>
+      <div class="ph"><div class="pn">P7B</div><div><div class="pt">mCODE export — stretch</div><div class="pd">Project the canonical domain back out as mCODE-shaped FHIR plus a FHIR <code>Provenance</code> projection, proving the boundary is bidirectional. <strong>No longer required for V1 completion</strong> — valuable, but it must not delay a finished vertical slice.</div><div class="pg">Optional — attempt only once P7A is done</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s24">
+  <h2 class="sec"><span class="num">24</span>Explicitly postponed</h2><div class="rule"></div>
+  <div class="body indent">
+    <p>Each of these belongs in the README as a stated non-goal. A documented exclusion reads as judgement; a silent one reads as an unfinished feature.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Postponed</th><th>Earliest</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td><strong>DICOM / DICOMweb</strong></td><td>Out of V1 entirely</td><td>Excluded by the brief. Different data model, different infrastructure, no shared boundary with this work.</td></tr>
+        <tr><td><strong>SMART on FHIR</strong></td><td>Out of V1 entirely</td><td>Excluded by the brief. Adds an OAuth surface with no bearing on the thesis.</td></tr>
+        <tr><td><strong>Authentication / authorization</strong></td><td>Post-V1</td><td>Single-user local application. Adding auth would consume a phase and prove nothing about the domain. Its absence must be stated, not hidden.</td></tr>
+        <tr><td><strong>Real EHR integration</strong></td><td>Never in this project</td><td>Synthetic data only, permanently.</td></tr>
+        <tr><td><strong>Tumour markers / biomarkers</strong></td><td>Post-V1</td><td>Cut deliberately — see §4. State the reasoning in the README.</td></tr>
+        <tr><td><strong>Medications &amp; systemic therapy</strong></td><td>Post-V1</td><td>Request/Administration/Statement split plus <code>medication[x]</code> reference-or-inline is a genuinely different normalization problem. Good second slice.</td></tr>
+        <tr><td><strong>Genomics</strong></td><td>Not planned</td><td>Large domain, weak marginal engineering value here.</td></tr>
+        <tr><td><strong>Terminology services</strong></td><td>Post-V1</td><td>Value-set expansion, subsumption, concept mapping. See §14.</td></tr>
+        <tr><td><strong>Full FHIR profile validation</strong></td><td>Post-V1</td><td>Deliberate ADR-0008 decision, explicitly reversible.</td></tr>
+        <tr><td><strong>Large synthetic populations</strong></td><td>Post-V1</td><td>V1 targets single-patient bundles. Cohort scale is a performance story, not an architecture story, and would distract from the boundary work.</td></tr>
+        <tr><td><strong>Cross-batch patient matching</strong></td><td>Post-V1</td><td>Identity is batch-scoped in V1. Record linkage is its own discipline.</td></tr>
+        <tr><td><strong>Advanced deployment</strong></td><td>Post-V1</td><td><code>docker compose</code> only. No Kubernetes, no cloud infrastructure, no CD pipeline beyond CI tests.</td></tr>
+        <tr><td><strong>Microservices, Kafka, Redis, event sourcing, CQRS, AI</strong></td><td>Not planned</td><td>Excluded by the brief. Nothing in this analysis has produced a justification for any of them.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="summary">
+  <h2 class="sec"><span class="num">▸</span>Final output</h2><div class="rule"></div>
+  <div class="body indent">
+    <h3>1 · Recommended V1</h3>
+    <p>A locally-run modular monolith that ingests a synthetic FHIR R4 bundle, stores every source resource verbatim and immutably, normalizes <strong>four</strong> oncology concepts into a canonical non-FHIR domain model, evaluates <strong>six</strong> named and individually-cited deterministic quality checks across four categories, records multi-source lineage for every normalized entity, and exposes all four layers through a REST API and an Angular inspector rendering <em>source → normalized → quality → provenance</em>.</p>
+
+    <h3>2 · Recommended domain concepts</h3>
+    <p><code>Patient</code> · <code>PrimaryCancerDiagnosis</code> · <code>CancerStaging</code> (composite: stage group + up to three <code>StageCategory</code>) · <code>CancerSurgicalProcedure</code>. Supported by <code>PartialDate</code>, <code>CodedConcept</code>, <code>Finding</code>, <code>CoverageNote</code>, <code>ImportBatch</code>, <code>SourceResource</code>, <code>Lineage</code>.</p>
+
+    <h3>3 · Recommended source FHIR resources</h3>
+    <p><code>Bundle</code> · <code>Patient</code> · <code>Condition</code> · <code>Observation</code> (TNM stage group + T/N/M categories) · <code>Procedure</code>. Measured against mCODE STU4 profiles; conformance to them is never required for ingestion.</p>
+
+    <h3>4 · Recommended solution boundaries</h3>
+    <p><code>Domain</code> (zero dependencies) · <code>Application</code> · <code>Interop.Fhir</code> (sole owner of <code>Hl7.Fhir.*</code>) · <code>Infrastructure</code> · <code>Api</code> · <code>oncobridge-web</code>, plus three test projects. Modular monolith. The FHIR/domain boundary is enforced by an automated architecture test.</p>
+
+    <h3>5 · First acceptance scenario</h3>
+    <p>One synthetic bundle containing three deliberate defects → 201 with a batch id → 7 verbatim hashed source resources → 4 normalized entities including a staging composite assembled from 4 observations → exactly three findings (<code>OB-CONF-001</code>, <code>OB-CONF-002</code>, <code>OB-REF-001</code>) → 4 lineage records → rendered in the four-pane inspector. Full detail in §18. <strong>This is the phase gate.</strong></p>
+
+    <h3>6 · First ADR list</h3>
+    <p>ADR-0001 domain independent of FHIR · 0002 mCODE as boundary not contract · 0003 immutable source, derived normalization · 0004 four finding categories and attachment rules · 0005 variable-precision temporal model (<code>PartialDate</code>, <code>PartialPeriod</code>, <code>TemporalComparison</code>) · 0006 PostgreSQL with <code>bytea</code> raw payloads · 0007 modular monolith with enforced boundary · 0008 cited checks over general validator · 0009 no terminology server in V1.</p>
+
+    <h3>7 · Proposed phases</h3>
+    <p>P1 domain foundation · P2 ingestion &amp; provenance · P3 normalization · P4 quality engine · P5 API · P6 Angular inspector then timeline · <strong>P7A release polish (mandatory)</strong> · P7B mCODE export (stretch). Each with a hard gate (§23).</p>
+
+    <h3>8 · Explicit non-goals</h3>
+    <p>Not a registry, not an EHR, not a FHIR viewer, not decision support. No DICOM/DICOMweb, no SMART on FHIR, no authentication, no real EHR integration, no tumour markers, no medications, no genomics, no terminology services, no full profile validation, no large populations, no cross-batch patient matching, no advanced deployment, no microservices/Kafka/Redis/event sourcing/CQRS/AI.</p>
+  </div>
+</section>
+
+<section id="verdict">
+  <h2 class="sec"><span class="num">▸</span>Verdict</h2><div class="rule"></div>
+  <div class="body indent">
+    <div class="verdict">
+      <p class="eyebrow">Phase 0 assessment</p>
+      <p class="big">Green light — with changes</p>
+      <p>The project is feasible, the scope is defensible, and the architecture has a genuine thesis rather than a feature list. It is approved to proceed to Phase 1 subject to the following changes, all of which narrow scope or sharpen a boundary.</p>
+      <h3>Required changes to the proposed V1</h3>
+      <ol class="list">
+        <li><strong>Cut tumour markers / biomarkers.</strong> Architecturally redundant against the staging observations, and the only concept in the proposal that would require inventing medical judgement. The single most important change here.</li>
+        <li><strong>Narrow treatment to surgical procedure.</strong> Medications are a separate normalization problem and belong to a second slice.</li>
+        <li><strong>Promote staging to the architectural centre.</strong> It was listed as one concept among five; it is in fact the concept carrying the project's entire claim to not being a FHIR viewer. Build it first in Phase 3.</li>
+        <li><strong>Add <code>PartialDate</code> and <code>PartialPeriod</code> as first-class domain concepts</strong>, compared through a four-outcome <code>TemporalComparison</code>. Not implied by the original proposal, and their absence would have produced a silently wrong system.</li>
+        <li><strong>Fix mCODE's role: conformance yardstick and export target only, never an ingestion requirement.</strong> Justified by the verified fact that Synthea cannot emit mCODE directly.</li>
+        <li><strong>Adopt six cited checks rather than a general profile validator</strong> for V1, recorded as an explicitly reversible decision.</li>
+        <li><strong>PostgreSQL</strong>, with all raw-JSON access held behind a repository interface.</li>
+        <li><strong>Adopt the naming discipline in §3 from the first commit.</strong> It is the effective control against medical-device language, and it is expensive to retrofit.</li>
+      </ol>
+      <h3>Standing hazard</h3>
+      <p>The most likely way this project fails is not technical — it is an incomplete vertical slice caused by adding concepts before §18 passes end to end. <strong>Treat the acceptance scenario as a hard gate.</strong> Four concepts finished beats six concepts half-built, every time.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Phase 0 — analysis only. No production code written, no solution scaffolded.<br>
+  Standards facts verified against
+  <a class="ext" href="https://hl7.org/fhir/us/mcode/STU4/">mCODE STU4 (v4.0.0)</a>,
+  <a class="ext" href="https://hl7.org/fhir/R4/provenance.html">FHIR R4 Provenance</a>,
+  <a class="ext" href="https://github.com/synthetichealth/synthea">Synthea</a>,
+  <a class="ext" href="https://github.com/FirelyTeam/firely-net-sdk">Firely .NET SDK</a> and
+  <a class="ext" href="https://confluence.hl7.org/display/COD/mCODE+Test+Data">HL7 mCODE test data</a>.
+  Architectural recommendations are distinguished from verified specification facts throughout.<br>
+  OncoBridge uses synthetic and public data only. It is not diagnostic software, treatment software, clinical decision support, a medical device, or clinically validated, and is not suitable for real clinical use.</p>
+</footer>
+
+</main>
+</div>
+</div>
