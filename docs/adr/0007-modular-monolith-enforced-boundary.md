@@ -20,7 +20,7 @@ one.
 ```
 OncoBridge.Domain          zero dependencies
 OncoBridge.Application     -> Domain
-OncoBridge.Interop.Fhir    -> Domain            (sole owner of Hl7.Fhir.*, from P3)
+OncoBridge.Interop.Fhir    -> Domain            (sole owner of Hl7.Fhir.*, since P2)
 OncoBridge.Infrastructure  -> Domain, Application
 OncoBridge.Api             -> Application, Infrastructure
 ```
@@ -66,9 +66,10 @@ arriving by a route the project file does not spell out.
 it drops the GUID bookkeeping that makes classic `.sln` files merge badly. The cost is that older
 tooling cannot open it, which is acceptable for a project already pinned to .NET 10.
 
-**SDK pinning:** `global.json` pins `10.0.400` with `rollForward: disable`. This is the strictest
-option and will fail loudly on a machine with a different SDK patch, which is the intended
-behaviour — silent roll-forward to a newer major is precisely what must not happen.
+**SDK pinning:** `global.json` pins `10.0.400` with `rollForward: latestPatch`. Silent roll-forward
+to a newer major or minor is what must not happen; tolerating a newer *patch* of the same feature
+band keeps the repository buildable on a machine or CI image that ships 10.0.4xx without weakening
+that guarantee. `disable` was considered and rejected as needlessly brittle for the benefit gained.
 
 ## Consequences
 
