@@ -2,7 +2,7 @@ namespace OncoBridge.Domain.Temporal;
 
 public sealed class PartialDate : IEquatable<PartialDate>
 {
-    private static readonly TimeSpan MinUtcOffset = TimeSpan.FromHours(-12);
+    private static readonly TimeSpan MinUtcOffset = TimeSpan.FromHours(-14);
 
     private static readonly TimeSpan MaxUtcOffset = TimeSpan.FromHours(14);
 

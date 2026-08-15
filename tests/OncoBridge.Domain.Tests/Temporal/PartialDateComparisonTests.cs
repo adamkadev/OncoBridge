@@ -138,6 +138,72 @@ public sealed class PartialDateComparisonTests
     }
 
     [Fact]
+    public void An_instant_at_the_minimum_legal_offset_retains_it()
+    {
+        PartialDate date = PartialDate.FromInstant(
+            new DateTimeOffset(2019, 3, 14, 10, 0, 0, TimeSpan.FromHours(-14)));
+
+        Assert.Equal(TimeSpan.FromHours(-14), date.Instant!.Value.Offset);
+        Assert.Equal("2019-03-14T10:00:00-14:00", date.ToString());
+        Assert.Equal(new DateTime(2019, 3, 15, 0, 0, 0), date.Instant!.Value.UtcDateTime);
+    }
+
+    [Fact]
+    public void An_instant_at_the_maximum_legal_offset_retains_it()
+    {
+        PartialDate date = PartialDate.FromInstant(
+            new DateTimeOffset(2019, 3, 14, 10, 0, 0, TimeSpan.FromHours(14)));
+
+        Assert.Equal(TimeSpan.FromHours(14), date.Instant!.Value.Offset);
+        Assert.Equal("2019-03-14T10:00:00+14:00", date.ToString());
+        Assert.Equal(new DateTime(2019, 3, 13, 20, 0, 0), date.Instant!.Value.UtcDateTime);
+    }
+
+    [Fact]
+    public void Instants_twenty_eight_hours_apart_in_offset_may_denote_the_same_moment() =>
+        Assert.Equal(
+            TemporalComparison.Same,
+            PartialDate.Compare(
+                PartialDate.FromInstant(new DateTimeOffset(2019, 3, 14, 0, 0, 0, TimeSpan.FromHours(-14))),
+                PartialDate.FromInstant(new DateTimeOffset(2019, 3, 15, 4, 0, 0, TimeSpan.FromHours(14)))));
+
+    [Fact]
+    public void A_floating_day_is_indeterminate_against_an_instant_reachable_only_at_minus_fourteen()
+    {
+        TemporalComparison result = PartialDate.Compare(
+            PartialDate.FromDate(2019, 3, 14),
+            PartialDate.FromInstant(new DateTimeOffset(2019, 3, 15, 13, 0, 0, TimeSpan.Zero)));
+
+        Assert.Equal(TemporalComparison.Indeterminate, result);
+    }
+
+    [Fact]
+    public void A_floating_day_is_indeterminate_against_an_instant_reachable_only_at_plus_fourteen()
+    {
+        TemporalComparison result = PartialDate.Compare(
+            PartialDate.FromDate(2019, 3, 14),
+            PartialDate.FromInstant(new DateTimeOffset(2019, 3, 13, 11, 0, 0, TimeSpan.Zero)));
+
+        Assert.Equal(TemporalComparison.Indeterminate, result);
+    }
+
+    [Fact]
+    public void A_floating_day_is_still_ordered_beyond_the_widest_offset_window()
+    {
+        Assert.Equal(
+            TemporalComparison.Before,
+            PartialDate.Compare(
+                PartialDate.FromDate(2019, 3, 14),
+                PartialDate.FromInstant(new DateTimeOffset(2019, 3, 15, 14, 0, 0, TimeSpan.Zero))));
+
+        Assert.Equal(
+            TemporalComparison.After,
+            PartialDate.Compare(
+                PartialDate.FromDate(2019, 3, 14),
+                PartialDate.FromInstant(new DateTimeOffset(2019, 3, 13, 9, 0, 0, TimeSpan.Zero))));
+    }
+
+    [Fact]
     public void Comparing_at_the_start_of_the_calendar_does_not_overflow()
     {
         TemporalComparison result = PartialDate.Compare(

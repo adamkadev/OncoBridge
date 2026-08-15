@@ -12,7 +12,7 @@ public sealed class PartialDateComparisonPropertyTests
             Gen.Int[2000, 2030], Gen.Int[1, 12], Gen.Int[1, 28],
             (y, m, d) => PartialDate.FromDate(y, m, d)),
         Gen.Select(
-            Gen.Int[2000, 2030], Gen.Int[1, 12], Gen.Int[1, 28], Gen.Int[0, 23], Gen.Int[-12, 14],
+            Gen.Int[2000, 2030], Gen.Int[1, 12], Gen.Int[1, 28], Gen.Int[0, 23], Gen.Int[-14, 14],
             (y, m, d, h, offsetHours) => PartialDate.FromInstant(
                 new DateTimeOffset(y, m, d, h, 0, 0, TimeSpan.FromHours(offsetHours)))));
 
@@ -96,7 +96,7 @@ public sealed class PartialDateComparisonPropertyTests
                 (DateTime localStart, DateTime localEnd) = LocalRange(floating);
                 DateTime instantUtc = instant.Instant!.Value.UtcDateTime;
 
-                for (int offsetHours = -12; offsetHours <= 14; offsetHours++)
+                for (int offsetHours = -14; offsetHours <= 14; offsetHours++)
                 {
                     TimeSpan offset = TimeSpan.FromHours(offsetHours);
                     DateTime utcStart = localStart - offset;
