@@ -1,33 +1,32 @@
-using System.Text;
-using System.Text.Json;
-using Hl7.Fhir.Serialization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
 using FhirCondition = Hl7.Fhir.Model.Condition;
 using FhirPatient = Hl7.Fhir.Model.Patient;
-using FhirResource = Hl7.Fhir.Model.Resource;
 
 namespace OncoBridge.Interop.Fhir.Normalization;
 
 public sealed class FhirNormalizer
 {
-    private readonly FhirJsonDeserializer _deserializer = new();
+    private readonly FhirResourceReader _reader = new();
 
     public NormalizationResult Normalize(IReadOnlyList<SourceResource> sourceResources)
     {
         ArgumentNullException.ThrowIfNull(sourceResources);
 
-        PatientReferenceIndex patientIndex = PatientReferenceIndex.Build(sourceResources);
+        SourceResourceReferenceIndex index = SourceResourceReferenceIndex.Build(sourceResources);
         HashSet<SourceResourceId> normalizedPatientSources = [];
+        Dictionary<SourceResourceId, DiagnosisAssociation> diagnosedConditions = [];
         List<Patient> patients = [];
         List<PrimaryCancerDiagnosis> diagnoses = [];
+        List<CancerStaging> stagings = [];
         List<Lineage> lineage = [];
 
         foreach ((SourceResource source, FhirCondition condition) in
             EligiblePrimaryCancerConditions(sourceResources))
         {
-            if (patientIndex.Resolve(source.BatchId, condition.Subject) is not { } patientSource)
+            if (index.Resolve(source.BatchId, condition.Subject, FhirResourceTypes.Patient)
+                is not { } patientSource)
             {
                 continue;
             }
@@ -45,18 +44,28 @@ public sealed class FhirNormalizer
             }
 
             diagnoses.Add(diagnosis);
+            diagnosedConditions[source.Id] =
+                new DiagnosisAssociation(diagnosis.Id, patientId, patientSource.Id);
             lineage.Add(Lineage.ForEntity(
                 NormalizationMetadata.PrimaryCancerDiagnosisEntityType,
-                diagnosis.Id,
+                diagnosis.Id.Value,
                 source.Id,
                 NormalizationMetadata.PrimaryCancerDiagnosisTransformation,
                 NormalizationMetadata.PrimaryCancerDiagnosisTransformationVersion));
+        }
+
+        foreach ((CancerStaging staging, SourceResourceId rootSourceId) in
+            new CancerStagingMapper(_reader, index).Normalize(sourceResources, diagnosedConditions))
+        {
+            stagings.Add(staging);
+            lineage.AddRange(StagingLineage(staging, rootSourceId));
         }
 
         return new NormalizationResult
         {
             Patients = patients,
             PrimaryCancerDiagnoses = diagnoses,
+            CancerStagings = stagings,
             Lineage = lineage,
         };
     }
@@ -71,7 +80,7 @@ public sealed class FhirNormalizer
                 continue;
             }
 
-            if (Deserialize<FhirCondition>(source) is { } condition
+            if (_reader.Read<FhirCondition>(source) is { } condition
                 && McodeProfiles.DeclaresPrimaryCancerCondition(condition.Meta))
             {
                 yield return (source, condition);
@@ -92,7 +101,7 @@ public sealed class FhirNormalizer
             return patientId;
         }
 
-        if (Deserialize<FhirPatient>(patientSource) is not { } source)
+        if (_reader.Read<FhirPatient>(patientSource) is not { } source)
         {
             return null;
         }
@@ -111,29 +120,33 @@ public sealed class FhirNormalizer
         return patient.Id;
     }
 
-    private T? Deserialize<T>(SourceResource source)
-        where T : FhirResource
+    private static IEnumerable<Lineage> StagingLineage(
+        CancerStaging staging, SourceResourceId rootSourceId)
     {
-        if (string.IsNullOrWhiteSpace(source.ResourceJson))
-        {
-            return null;
-        }
+        yield return Lineage.ForEntity(
+            NormalizationMetadata.CancerStagingEntityType,
+            staging.Id,
+            rootSourceId,
+            NormalizationMetadata.CancerStagingTransformation,
+            NormalizationMetadata.CancerStagingTransformationVersion);
 
-        try
+        foreach (StageCategory category in staging.Categories)
         {
-            Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(source.ResourceJson));
-
-            return _deserializer.TryDeserializeResource(ref reader, out FhirResource? resource, out _)
-                ? resource as T
-                : null;
-        }
-        catch (DeserializationFailedException)
-        {
-            return null;
-        }
-        catch (JsonException)
-        {
-            return null;
+            yield return Lineage.ForField(
+                NormalizationMetadata.CancerStagingEntityType,
+                staging.Id,
+                FieldPathOf(category.Axis),
+                category.SourceResourceId,
+                NormalizationMetadata.CancerStagingTransformation,
+                NormalizationMetadata.CancerStagingTransformationVersion);
         }
     }
+
+    private static string FieldPathOf(StageAxis axis) => axis switch
+    {
+        StageAxis.T => NormalizationMetadata.PrimaryTumourFieldPath,
+        StageAxis.N => NormalizationMetadata.RegionalNodesFieldPath,
+        StageAxis.M => NormalizationMetadata.DistantMetastasesFieldPath,
+        _ => throw new InvalidOperationException($"Unhandled stage axis '{axis}'."),
+    };
 }

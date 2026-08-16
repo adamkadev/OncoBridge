@@ -34,13 +34,20 @@ been crossed.
 
 ## Identifier strategy
 
-Strongly-typed identifiers exist for exactly three things — `PatientId`, `ImportBatchId`,
-`SourceResourceId` — because each is passed as a parameter or stored as a foreign reference, where a
-bare `Guid` would let two unrelated identities be swapped silently.
+An identifier is strongly typed when it is **passed as a parameter or stored as a foreign
+reference**, because that is where a bare `Guid` would let two unrelated identities be swapped
+silently. Everything else stays a plain `Guid`: wrapping an identifier nothing else refers to would
+add a type without preventing anything.
 
-An entity's *own* identifier stays a plain `Guid`. It is not passed around, so wrapping it would add
-types without preventing anything. The asymmetry is deliberate, not an oversight: strong typing is
-applied where it does work and nowhere else.
+That rule currently yields `PatientId`, `ImportBatchId`, `SourceResourceId` and
+`PrimaryCancerDiagnosisId`. The last one joined in Phase 3B, when `CancerStaging` began recording
+which cancer it stages: mCODE's TNM Stage Group `Observation.focus` names the primary cancer
+Condition, and dropping that to `PatientId` alone would make a patient with two primary cancers
+ambiguous. `PrimaryCancerDiagnosis` is the anchor other entities hang from, so its identifier is a
+foreign reference and is typed accordingly.
+
+`CancerStaging.Id` remains a plain `Guid` under the same rule — nothing references it yet. The
+asymmetry is the rule working, not an oversight.
 
 ## Consequences
 

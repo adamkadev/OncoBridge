@@ -7,6 +7,11 @@ public readonly record struct PatientId(Guid Value)
     public override string ToString() => Value.ToString();
 }
 
+public readonly record struct PrimaryCancerDiagnosisId(Guid Value)
+{
+    public override string ToString() => Value.ToString();
+}
+
 public readonly record struct ImportBatchId(Guid Value)
 {
     public static ImportBatchId New() => new(Guid.NewGuid());

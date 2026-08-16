@@ -36,13 +36,13 @@ public sealed class NormalizationLineageTests
         Lineage lineage = Assert.Single(
             result.Lineage, record => record.DomainEntityType == "PrimaryCancerDiagnosis");
 
-        Assert.Equal(result.PrimaryCancerDiagnoses[0].Id, lineage.DomainEntityId);
+        Assert.Equal(result.PrimaryCancerDiagnoses[0].Id.Value, lineage.DomainEntityId);
         Assert.Equal(SourceOfType(ingested, "Condition").Id, lineage.SourceResourceId);
         Assert.True(lineage.IsWholeEntity);
     }
 
     [Fact]
-    public void Normalization_produces_no_field_level_lineage()
+    public void A_bundle_carrying_no_staging_produces_no_field_level_lineage()
     {
         (_, NormalizationResult result) = NormalizeFixture();
 

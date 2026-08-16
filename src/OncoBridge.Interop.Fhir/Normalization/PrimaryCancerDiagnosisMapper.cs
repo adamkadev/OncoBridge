@@ -16,7 +16,7 @@ internal static class PrimaryCancerDiagnosisMapper
         }
 
         return new PrimaryCancerDiagnosis(
-            sourceResourceId.Value,
+            new PrimaryCancerDiagnosisId(sourceResourceId.Value),
             patientId,
             code,
             FhirTemporalMapper.ToOccurrence(source.Onset),

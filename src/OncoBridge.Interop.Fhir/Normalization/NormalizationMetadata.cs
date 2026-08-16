@@ -13,4 +13,16 @@ internal static class NormalizationMetadata
     internal const string PrimaryCancerDiagnosisTransformation = "FhirPrimaryCancerDiagnosisNormalization";
 
     internal const string PrimaryCancerDiagnosisTransformationVersion = "1.0.0";
+
+    internal const string CancerStagingEntityType = "CancerStaging";
+
+    internal const string CancerStagingTransformation = "FhirCancerStagingNormalization";
+
+    internal const string CancerStagingTransformationVersion = "1.0.0";
+
+    internal const string PrimaryTumourFieldPath = "PrimaryTumour";
+
+    internal const string RegionalNodesFieldPath = "RegionalNodes";
+
+    internal const string DistantMetastasesFieldPath = "DistantMetastases";
 }
