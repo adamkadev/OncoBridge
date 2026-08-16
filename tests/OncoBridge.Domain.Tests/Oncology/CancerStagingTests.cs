@@ -34,7 +34,7 @@ public sealed class CancerStagingTests
     }
 
     [Fact]
-    public void An_assessment_reports_every_distinct_source_it_was_assembled_from()
+    public void An_assessment_reports_every_distinct_source_its_categories_came_from()
     {
         CancerStaging staging = new(
             Guid.NewGuid(),
@@ -47,7 +47,7 @@ public sealed class CancerStagingTests
                 CategoryFor(StageAxis.M, "M0"),
             ]);
 
-        Assert.Equal(3, staging.ContributingSourceResources.Count);
+        Assert.Equal(3, staging.CategorySourceResources.Count);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class CancerStagingTests
                 new StageCategory(StageAxis.N, Category("N1"), shared),
             ]);
 
-        Assert.Single(staging.ContributingSourceResources);
+        Assert.Single(staging.CategorySourceResources);
     }
 
     [Fact]

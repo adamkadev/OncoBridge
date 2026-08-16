@@ -69,7 +69,7 @@ public sealed class CancerStaging
 
     public StageCategory? DistantMetastases => FindAxis(StageAxis.M);
 
-    public IReadOnlyCollection<SourceResourceId> ContributingSourceResources =>
+    public IReadOnlyCollection<SourceResourceId> CategorySourceResources =>
         _categories.Select(c => c.SourceResourceId).Distinct().ToList();
 
     private StageCategory? FindAxis(StageAxis axis) =>
