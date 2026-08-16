@@ -1,24 +1,20 @@
-using System.Text;
-using System.Text.Json;
-using Hl7.Fhir.Serialization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
 using FhirCondition = Hl7.Fhir.Model.Condition;
 using FhirPatient = Hl7.Fhir.Model.Patient;
-using FhirResource = Hl7.Fhir.Model.Resource;
 
 namespace OncoBridge.Interop.Fhir.Normalization;
 
 public sealed class FhirNormalizer
 {
-    private readonly FhirJsonDeserializer _deserializer = new();
+    private readonly FhirResourceReader _reader = new();
 
     public NormalizationResult Normalize(IReadOnlyList<SourceResource> sourceResources)
     {
         ArgumentNullException.ThrowIfNull(sourceResources);
 
-        PatientReferenceIndex patientIndex = PatientReferenceIndex.Build(sourceResources);
+        SourceResourceReferenceIndex index = SourceResourceReferenceIndex.Build(sourceResources);
         HashSet<SourceResourceId> normalizedPatientSources = [];
         List<Patient> patients = [];
         List<PrimaryCancerDiagnosis> diagnoses = [];
@@ -27,7 +23,8 @@ public sealed class FhirNormalizer
         foreach ((SourceResource source, FhirCondition condition) in
             EligiblePrimaryCancerConditions(sourceResources))
         {
-            if (patientIndex.Resolve(source.BatchId, condition.Subject) is not { } patientSource)
+            if (index.Resolve(source.BatchId, condition.Subject, FhirResourceTypes.Patient)
+                is not { } patientSource)
             {
                 continue;
             }
@@ -71,7 +68,7 @@ public sealed class FhirNormalizer
                 continue;
             }
 
-            if (Deserialize<FhirCondition>(source) is { } condition
+            if (_reader.Read<FhirCondition>(source) is { } condition
                 && McodeProfiles.DeclaresPrimaryCancerCondition(condition.Meta))
             {
                 yield return (source, condition);
@@ -92,7 +89,7 @@ public sealed class FhirNormalizer
             return patientId;
         }
 
-        if (Deserialize<FhirPatient>(patientSource) is not { } source)
+        if (_reader.Read<FhirPatient>(patientSource) is not { } source)
         {
             return null;
         }
@@ -109,31 +106,5 @@ public sealed class FhirNormalizer
             NormalizationMetadata.PatientTransformationVersion));
 
         return patient.Id;
-    }
-
-    private T? Deserialize<T>(SourceResource source)
-        where T : FhirResource
-    {
-        if (string.IsNullOrWhiteSpace(source.ResourceJson))
-        {
-            return null;
-        }
-
-        try
-        {
-            Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(source.ResourceJson));
-
-            return _deserializer.TryDeserializeResource(ref reader, out FhirResource? resource, out _)
-                ? resource as T
-                : null;
-        }
-        catch (DeserializationFailedException)
-        {
-            return null;
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
     }
 }
