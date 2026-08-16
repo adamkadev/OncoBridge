@@ -16,6 +16,7 @@ regression. Phase 2 and Phase 3 fixtures are untouched.
 | `bundle-stage-group-missing-method.json` | A recognisable TNM stage group with no `Observation.method` | `OB-CONF-002` |
 | `bundle-dangling-reference.json` | `Condition.subject` naming a `urn:uuid:` that is not in the bundle | `OB-REF-001` |
 | `bundle-staging-subject-mismatch.json` | Two Patients; the stage group names one and its T member names the other | `OB-REF-002` |
+| `bundle-staging-precedes-diagnosis.json` | Staging effective `2019-05-01` against a diagnosis onset of `2019-06` — source-clean, defective only once normalized | `OB-DOM-001` |
 | `bundle-clean-source.json` | None — every covered reference resolves and both conformance rules are met | The control: proves the evaluator reports **nothing** on good input |
 | `bundle-acceptance-defects.json` | Three defects at once (see below) | The combined V1 scenario |
 
@@ -45,3 +46,19 @@ to the mapper.
 
 That separation is the point of the whole phase: source quality is a statement about the input, not
 about whether OncoBridge managed to normalize it.
+
+## `bundle-staging-precedes-diagnosis.json` — the one defect no source check can see
+
+Every element of this bundle is conformant: the Condition carries `problem-list-item`, the stage
+group carries a `method`, and every covered reference resolves. All five source checks report
+nothing. The defect only exists once the bundle has been **normalized**, because it is a statement
+about the relationship between two canonical entities — a staging effective on `2019-05-01` against a
+diagnosis whose onset is `2019-06`.
+
+That is why `OB-DOM-001` is the only check that lives in FHIR-independent Domain code and the only
+one whose findings a re-normalization invalidates.
+
+The dates are chosen so `PartialDate.Compare` returns `Before` rather than `Indeterminate`: the
+staging's Day-precision interval closes before the onset's Month-precision interval opens. Widening
+either value would change the answer to `Indeterminate` and, correctly, suppress the finding —
+which is what the Indeterminate unit tests in `OncoBridge.Domain.Tests` pin down.
