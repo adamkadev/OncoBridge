@@ -36,7 +36,7 @@ public sealed class NormalizationLineageTests
         Lineage lineage = Assert.Single(
             result.Lineage, record => record.DomainEntityType == "PrimaryCancerDiagnosis");
 
-        Assert.Equal(result.PrimaryCancerDiagnoses[0].Id, lineage.DomainEntityId);
+        Assert.Equal(result.PrimaryCancerDiagnoses[0].Id.Value, lineage.DomainEntityId);
         Assert.Equal(SourceOfType(ingested, "Condition").Id, lineage.SourceResourceId);
         Assert.True(lineage.IsWholeEntity);
     }

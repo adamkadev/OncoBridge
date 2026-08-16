@@ -7,7 +7,7 @@ namespace OncoBridge.Domain.Oncology;
 public sealed class PrimaryCancerDiagnosis
 {
     public PrimaryCancerDiagnosis(
-        Guid id,
+        PrimaryCancerDiagnosisId id,
         PatientId patientId,
         CodedConcept code,
         TemporalOccurrence? onset = null,
@@ -24,7 +24,7 @@ public sealed class PrimaryCancerDiagnosis
         RecordedDate = recordedDate;
     }
 
-    public Guid Id { get; }
+    public PrimaryCancerDiagnosisId Id { get; }
 
     public PatientId PatientId { get; }
 

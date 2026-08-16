@@ -1,3 +1,4 @@
+using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
 using OncoBridge.Interop.Fhir.Normalization;
@@ -49,7 +50,9 @@ public sealed class DerivedIdentityTests
 
         NormalizationResult result = NormalizationFixtures.Normalize(ingested.SourceResources);
 
-        Assert.Equal(SourceOfType(ingested, "Condition").Id.Value, result.PrimaryCancerDiagnoses[0].Id);
+        Assert.Equal(
+            new PrimaryCancerDiagnosisId(SourceOfType(ingested, "Condition").Id.Value),
+            result.PrimaryCancerDiagnoses[0].Id);
     }
 
     [Fact]

@@ -44,7 +44,7 @@ public sealed class FhirNormalizer
             diagnoses.Add(diagnosis);
             lineage.Add(Lineage.ForEntity(
                 NormalizationMetadata.PrimaryCancerDiagnosisEntityType,
-                diagnosis.Id,
+                diagnosis.Id.Value,
                 source.Id,
                 NormalizationMetadata.PrimaryCancerDiagnosisTransformation,
                 NormalizationMetadata.PrimaryCancerDiagnosisTransformationVersion));
