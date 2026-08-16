@@ -20,10 +20,35 @@ one.
 ```
 OncoBridge.Domain          zero dependencies
 OncoBridge.Application     -> Domain
-OncoBridge.Interop.Fhir    -> Domain            (sole owner of Hl7.Fhir.*, since P2)
-OncoBridge.Infrastructure  -> Domain, Application
+OncoBridge.Interop.Fhir    -> Domain, Application  (sole owner of Hl7.Fhir.*, since P2)
+OncoBridge.Infrastructure  -> Domain, Application  (sole owner of EF Core / Npgsql)
 OncoBridge.Api             -> Application, Infrastructure
 ```
+
+**Why both adapters point at `Application` (revised in P3D).** Through P3C, `Application` was empty and
+`Interop.Fhir` referenced only `Domain`. That was correct *at the time* and is recorded here rather
+than quietly rewritten: Phase 2 had no use case, so there was nothing for a port to abstract, and
+`Infrastructure.Tests` was the only place the two adapters met (see **Test projects** below).
+
+Phase 3D introduced the first real use case — `NormalizeImportBatch`, which loads a batch's immutable
+source resources, normalizes them, and atomically replaces that batch's derived canonical tier. That
+use case needs two abstractions, and both belong to it rather than to either adapter:
+
+| Port | Owned by | Implemented by |
+|---|---|---|
+| `ICanonicalNormalizer` | `Application` | `Interop.Fhir.FhirNormalizer` |
+| `INormalizationStore` | `Application` | `Infrastructure.NormalizationStore` |
+
+`NormalizationResult` moved from `Interop.Fhir` to `Application` in the same phase. It only ever held
+`Domain` types, and once it became the contract a use case returns, having the FHIR adapter own it
+would have forced `Infrastructure` to reference `Interop.Fhir` to persist a normalization result —
+exactly the edge this ADR exists to forbid.
+
+So `Interop.Fhir -> Application` is a **dependency-inversion arrow, not drift**: the adapter depends
+on the abstraction the application layer defines, and nothing in `Application` knows that FHIR or EF
+Core exist. The forbidden directions are unchanged and still asserted:
+`Application -> Interop.Fhir`, `Application -> Infrastructure`, `Interop.Fhir -> Infrastructure`, and
+`Infrastructure -> Interop.Fhir`.
 
 **Projects deliberately not created:**
 
@@ -49,10 +74,13 @@ reference matrix, using two complementary techniques because either alone has a 
 | Project | Must not reference |
 |---|---|
 | `OncoBridge.Domain` | `Hl7.Fhir`, EF Core, Npgsql, ASP.NET Core — and in fact *no package at all*, and no project |
-| `OncoBridge.Application` | `Hl7.Fhir`, EF Core, Npgsql |
+| `OncoBridge.Application` | `Hl7.Fhir`, EF Core, Npgsql — and any project other than `Domain` |
 | `OncoBridge.Interop.Fhir` | EF Core, Npgsql, and `OncoBridge.Infrastructure` |
-| `OncoBridge.Infrastructure` | `Hl7.Fhir` |
+| `OncoBridge.Infrastructure` | `Hl7.Fhir`, and `OncoBridge.Interop.Fhir` |
 | `OncoBridge.Api` | ASP.NET Core (until P5) |
+
+`Application_depends_on_the_domain_alone` asserts the second row as an exact set rather than a
+blocklist, because that is the row a future phase is most likely to erode one reference at a time.
 
 Plus two exclusivity rules: only `Interop.Fhir` may reference `Hl7.Fhir.*`, and only
 `Infrastructure` may reference EF Core or Npgsql.

@@ -1,7 +1,7 @@
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
 
-namespace OncoBridge.Interop.Fhir.Normalization;
+namespace OncoBridge.Application.Normalization;
 
 public sealed record NormalizationResult
 {

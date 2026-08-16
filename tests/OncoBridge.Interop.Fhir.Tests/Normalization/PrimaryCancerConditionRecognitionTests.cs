@@ -1,3 +1,4 @@
+using OncoBridge.Application.Normalization;
 using OncoBridge.Interop.Fhir.Normalization;
 
 namespace OncoBridge.Interop.Fhir.Tests.Normalization;

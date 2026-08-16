@@ -111,18 +111,41 @@ public sealed class DomainBoundaryTests
     }
 
     [Fact]
-    public void Interop_Fhir_does_not_reference_Infrastructure()
-    {
-        string[] references =
-        [
-            .. LoadProject("OncoBridge.Interop.Fhir")
-                .Descendants("ProjectReference")
-                .Select(element => element.Attribute("Include")?.Value ?? string.Empty)
-                .Where(include => include.Contains("Infrastructure", StringComparison.Ordinal)),
-        ];
+    public void Interop_Fhir_does_not_reference_Infrastructure() =>
+        AssertDoesNotReferenceProject("OncoBridge.Interop.Fhir", "OncoBridge.Infrastructure");
 
-        Assert.Empty(references);
+    [Fact]
+    public void Infrastructure_does_not_reference_Interop_Fhir() =>
+        AssertDoesNotReferenceProject("OncoBridge.Infrastructure", "OncoBridge.Interop.Fhir");
+
+    [Fact]
+    public void Application_depends_on_the_domain_alone()
+    {
+        Assert.Equal(["OncoBridge.Domain"], ProjectReferencesOf("OncoBridge.Application"));
     }
+
+    [Fact]
+    public void The_adapters_depend_inward_on_the_application_that_owns_their_ports()
+    {
+        Assert.Contains("OncoBridge.Application", ProjectReferencesOf("OncoBridge.Interop.Fhir"));
+        Assert.Contains("OncoBridge.Application", ProjectReferencesOf("OncoBridge.Infrastructure"));
+    }
+
+    private static void AssertDoesNotReferenceProject(string project, string forbidden)
+    {
+        Assert.True(
+            !ProjectReferencesOf(project).Contains(forbidden),
+            $"{project} must not reference {forbidden}.");
+    }
+
+    private static string[] ProjectReferencesOf(string project) =>
+    [
+        .. LoadProject(project)
+            .Descendants("ProjectReference")
+            .Select(element => element.Attribute("Include")?.Value ?? string.Empty)
+            .Select(include => Path.GetFileNameWithoutExtension(include))
+            .Order(),
+    ];
 
     [Fact]
     public void Api_has_not_started_and_references_no_web_packages()

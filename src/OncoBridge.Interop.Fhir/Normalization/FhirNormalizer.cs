@@ -1,3 +1,4 @@
+using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
@@ -7,9 +8,11 @@ using FhirProcedure = Hl7.Fhir.Model.Procedure;
 
 namespace OncoBridge.Interop.Fhir.Normalization;
 
-public sealed class FhirNormalizer
+public sealed class FhirNormalizer : ICanonicalNormalizer
 {
     private readonly FhirResourceReader _reader = new();
+
+    public string Version => NormalizationMetadata.PipelineVersion;
 
     public NormalizationResult Normalize(IReadOnlyList<SourceResource> sourceResources)
     {
