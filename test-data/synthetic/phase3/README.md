@@ -9,6 +9,7 @@ no real or re-identifiable data. Identifiers are `urn:uuid:` literals and an inv
 | `bundle-primary-cancer.json` | A two-entry FHIR R4 `collection` Bundle: one Patient and one Condition carrying the mCODE `PrimaryCancerCondition` profile. |
 | `bundle-tnm-staging.json` | A six-entry FHIR R4 `collection` Bundle: the same Patient and Condition plus a TNM Stage Group Observation and the three category Observations it composes. |
 | `bundle-surgical-procedure.json` | A two-entry FHIR R4 `collection` Bundle: the same Patient and a Procedure carrying the mCODE `CancerRelatedSurgicalProcedure` profile. It holds **no** Condition. |
+| `bundle-complete-normalization.json` | A seven-entry FHIR R4 `collection` Bundle carrying the whole V1 graph at once: Patient, primary cancer Condition, TNM Stage Group, its three T/N/M member Observations, and a cancer-related surgical Procedure. |
 
 ## Why this is separate from `phase2/bundle-minimal.json`
 
@@ -79,6 +80,26 @@ result with no `PrimaryCancerCondition` anywhere in the batch. It also keeps the
 exactly two entity-level rows, which is what the no-field-level-lineage assertion rests on.
 
 `status` is present only so the resource is credible FHIR R4. Phase 3C reads none of it.
+
+## `bundle-complete-normalization.json` — what it is for
+
+The three bundles above each isolate one mapper. This one exists for the opposite reason: Phase 3D
+persists a whole `NormalizationResult` in a single transaction, so it needs one input that produces
+every canonical concept at once.
+
+| Element | Exercises |
+|---|---|
+| All four concepts in one batch | The complete derived tier — 1 Patient, 1 diagnosis, 1 staging, 3 categories, 1 procedure — written, replaced and reloaded as a unit. |
+| The reference graph | `Condition.subject` → Patient; stage group `focus` → Condition, `subject` → Patient, `hasMember` → T/N/M; `Procedure.subject` → Patient. Every canonical foreign key in the schema is populated. |
+| `Condition.onsetDateTime` = `2019-03` | Month precision survives a PostgreSQL round trip. |
+| `Observation.effectiveDateTime` = `2019-04-02` | Day precision survives it. |
+| `Patient.birthDate` = `1968` | Year precision survives it — no month or day is fabricated by the database. |
+| `Procedure.performedPeriod` = `2019-05` … `2019-06-12` | The strongest fidelity case: a period whose two bounds sit at **different** precisions, proving each is stored independently rather than collapsed to one column or to the start. |
+| 7 lineage rows | 1 Patient + 1 diagnosis + 1 procedure + 1 staging entity + 3 staging field rows — the count re-normalization must reproduce exactly rather than accumulate. |
+
+Instant precision and open-ended periods are proved by small inline bundles in
+`OncoBridge.Infrastructure.Tests` rather than here, because a fixture cannot hold two different
+`onset` values at once and those cases exist only to pin down column fidelity.
 
 ## Scope
 
