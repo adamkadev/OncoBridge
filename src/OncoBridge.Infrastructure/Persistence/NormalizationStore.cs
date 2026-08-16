@@ -4,6 +4,7 @@ using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
+using OncoBridge.Domain.Quality;
 using OncoBridge.Infrastructure.Persistence.Configurations;
 
 namespace OncoBridge.Infrastructure.Persistence;
@@ -70,6 +71,12 @@ public sealed class NormalizationStore(OncoBridgeDbContext context) : INormaliza
 
     private async Task DeleteDerivedAsync(ImportBatchId batchId, CancellationToken cancellationToken)
     {
+        await context.Findings
+            .Where(finding =>
+                EF.Property<ImportBatchId>(finding, CanonicalColumns.BatchIdProperty) == batchId
+                && finding.Category == FindingCategory.DomainConsistency)
+            .ExecuteDeleteAsync(cancellationToken);
+
         await context.Lineages
             .Where(lineage => context.SourceResources
                 .Any(resource => resource.Id == lineage.SourceResourceId && resource.BatchId == batchId))

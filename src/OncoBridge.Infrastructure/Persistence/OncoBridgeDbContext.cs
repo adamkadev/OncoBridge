@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
+using OncoBridge.Domain.Quality;
 
 namespace OncoBridge.Infrastructure.Persistence;
 
@@ -19,6 +20,8 @@ public sealed class OncoBridgeDbContext(DbContextOptions<OncoBridgeDbContext> op
     public DbSet<CancerStaging> CancerStagings => Set<CancerStaging>();
 
     public DbSet<CancerSurgicalProcedure> CancerSurgicalProcedures => Set<CancerSurgicalProcedure>();
+
+    public DbSet<Finding> Findings => Set<Finding>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OncoBridgeDbContext).Assembly);

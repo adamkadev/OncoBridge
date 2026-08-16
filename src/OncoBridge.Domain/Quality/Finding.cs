@@ -2,6 +2,13 @@ namespace OncoBridge.Domain.Quality;
 
 public sealed record Finding
 {
+    private Finding()
+    {
+        Message = string.Empty;
+        Citation = string.Empty;
+        Target = null!;
+    }
+
     private Finding(
         CheckId checkId,
         FindingCategory category,

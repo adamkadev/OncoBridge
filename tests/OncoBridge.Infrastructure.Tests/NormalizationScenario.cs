@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using OncoBridge.Application.Normalization;
+using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
+using OncoBridge.Domain.Quality;
 using OncoBridge.Infrastructure.Persistence;
 using OncoBridge.Interop.Fhir.Ingestion;
 using OncoBridge.Interop.Fhir.Normalization;
+using OncoBridge.Interop.Fhir.Quality;
 
 namespace OncoBridge.Infrastructure.Tests;
 
@@ -74,6 +77,38 @@ internal sealed class NormalizationScenario(OncoBridgeDbContext context, FixedTi
         context.CancerSurgicalProcedures.AsNoTracking().SingleAsync();
 
     internal Task<List<Lineage>> LineageAsync() => context.Lineages.AsNoTracking().ToListAsync();
+
+    internal Task<ImportBatchId> IngestPhase4BundleAsync(string name, string label = "phase4-fixture") =>
+        IngestAsync(SyntheticFixtures.Phase4Bundle(name), label);
+
+    internal async Task<QualityAssessment?> AssessAsync(ImportBatchId batchId)
+    {
+        QualityAssessment? assessment = await new AssessImportBatch(
+            new FhirSourceQualityEvaluator(),
+            new DomainQualityEvaluator(),
+            new QualityStore(context)).ExecuteAsync(batchId);
+
+        context.ChangeTracker.Clear();
+
+        return assessment;
+    }
+
+    internal async Task<List<Finding>> FindingsAsync() =>
+        [
+            .. (await context.Findings.AsNoTracking().ToListAsync())
+                .OrderBy(finding => finding.CheckId.Value, StringComparer.Ordinal)
+                .ThenBy(finding => finding.Target.Id),
+        ];
+
+    internal async Task<List<Finding>> FindingsAboutAsync(IEnumerable<Guid> targetIds)
+    {
+        HashSet<Guid> targets = [.. targetIds];
+
+        return [.. (await FindingsAsync()).Where(finding => targets.Contains(finding.Target.Id))];
+    }
+
+    internal async Task<Guid[]> TargetsOfBatchAsync(ImportBatchId batchId) =>
+        [.. (await ReloadSourcesAsync(batchId)).Select(source => source.Id.Value)];
 
     internal Task<int> StageCategoryCountAsync() => context.Set<StageCategory>().CountAsync();
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
+using OncoBridge.Domain.Quality;
 
 namespace OncoBridge.Infrastructure.Persistence;
 
@@ -34,6 +35,9 @@ internal static class OncoBridgeValueConverters
 
     internal static readonly ValueConverter<PrimaryCancerDiagnosisId, Guid> PrimaryCancerDiagnosisId =
         new(id => id.Value, value => new PrimaryCancerDiagnosisId(value));
+
+    internal static readonly ValueConverter<CheckId, string> CheckId =
+        new(id => id.Value, value => Domain.Quality.CheckId.Parse(value));
 
     internal static readonly ValueConverter<DateTimeOffset, string> StatedInstant =
         new(

@@ -45,6 +45,24 @@ The practical payoff: re-running normalization must invalidate domain-consistenc
 leave conformance findings untouched. That falls out cleanly from this split and is a mess without
 it.
 
+**How the invalidation rule is implemented (P4B).** The split above is enforced by *which transaction
+owns the delete*, not by a scheduled cleanup:
+
+| Operation | Deletes |
+|---|---|
+| `NormalizationStore.ReplaceDerivedAsync` | The batch's `DomainConsistency` findings, inside the same transaction that replaces the canonical tier |
+| `QualityStore.ReplaceFindingsAsync` | *All* of the batch's findings, then reinserts what the evaluators just produced |
+
+Putting the domain-consistency delete inside the normalization transaction is what makes the rule
+survive failure: if canonical replacement rolls back, the previous derived result and the findings
+describing it both remain, and neither is left describing the other. `Structural`, `Conformance` and
+`ReferentialIntegrity` rows are never touched by normalization, because they are statements about
+source evidence that re-running a mapper cannot change.
+
+Re-assessment is therefore idempotent and re-normalization is not a substitute for it: after a rerun
+the domain findings are simply absent until `AssessImportBatch` recomputes them against the new
+canonical state.
+
 **`CoverageNote` is a separate type from `Finding`, with no severity and no shared base type.** A
 resource type outside V1 scope, or an occurrence stated in a form V1 does not read, is not a quality
 problem — OncoBridge simply did not look at it. Conflating "not examined" with "wrong" is the most
@@ -69,4 +87,10 @@ or *clinical*.
   surface would be invisible. `CancerStaging.Method` is nullable for precisely this reason.
 - Finding messages must be deterministic — same input, same string — so runs are comparable.
 - Persistence must key findings by target kind, since the two kinds have different invalidation
-  rules.
+  rules. The `finding` table stores `target_kind`, `target_id` and `target_domain_entity_type` as
+  ordinary columns with a check constraint tying the shape to the kind. There is deliberately **no**
+  foreign key from `target_id`: the target is polymorphic across `source_resource` and the canonical
+  tables, and no single relational FK can state that honestly.
+- `CoverageNote` is not persisted in V1. It stays a return value of the assessment, because the
+  planned API exposes findings rather than a coverage-history subsystem, and a table nothing reads
+  would be storage pretending to be a feature.
