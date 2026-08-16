@@ -10,9 +10,12 @@ internal static class McodeProfiles
     private const char VersionSeparator = '|';
 
     internal static bool DeclaresPrimaryCancerCondition(Meta? meta) =>
-        meta?.Profile?.Any(IsPrimaryCancerCondition) ?? false;
+        DeclaresProfile(meta, PrimaryCancerCondition);
 
-    private static bool IsPrimaryCancerCondition(string? profile)
+    private static bool DeclaresProfile(Meta? meta, string canonical) =>
+        meta?.Profile?.Any(profile => Declares(profile, canonical)) ?? false;
+
+    private static bool Declares(string? profile, string canonical)
     {
         if (profile is null)
         {
@@ -20,8 +23,8 @@ internal static class McodeProfiles
         }
 
         int separator = profile.IndexOf(VersionSeparator);
-        ReadOnlySpan<char> canonical = separator < 0 ? profile : profile.AsSpan(0, separator);
+        ReadOnlySpan<char> declared = separator < 0 ? profile : profile.AsSpan(0, separator);
 
-        return canonical.Equals(PrimaryCancerCondition, StringComparison.Ordinal);
+        return declared.Equals(canonical, StringComparison.Ordinal);
     }
 }
