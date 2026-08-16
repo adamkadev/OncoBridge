@@ -46,8 +46,7 @@ internal sealed class SourceResourceReferenceIndex
         return new SourceResourceReferenceIndex(resolvable, ambiguous);
     }
 
-    internal SourceResource? Resolve(
-        ImportBatchId batchId, ResourceReference? reference, string resourceType)
+    internal SourceResource? Resolve(ImportBatchId batchId, ResourceReference? reference)
     {
         if (string.IsNullOrWhiteSpace(reference?.Reference))
         {
@@ -56,15 +55,14 @@ internal sealed class SourceResourceReferenceIndex
 
         ReferenceKey key = new(batchId, reference.Reference);
 
-        if (_ambiguous.Contains(key))
-        {
-            return null;
-        }
-
-        SourceResource? source = _resolvable.GetValueOrDefault(key);
-
-        return source?.ResourceType == resourceType ? source : null;
+        return _ambiguous.Contains(key) ? null : _resolvable.GetValueOrDefault(key);
     }
+
+    internal SourceResource? Resolve(
+        ImportBatchId batchId, ResourceReference? reference, string resourceType) =>
+        Resolve(batchId, reference) is { } source && source.ResourceType == resourceType
+            ? source
+            : null;
 
     private static IEnumerable<string> ReferencesTo(SourceResource source)
     {

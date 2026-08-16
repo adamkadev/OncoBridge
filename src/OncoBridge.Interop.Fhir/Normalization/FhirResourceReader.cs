@@ -11,7 +11,9 @@ internal sealed class FhirResourceReader
     private readonly FhirJsonDeserializer _deserializer = new();
 
     internal T? Read<T>(SourceResource source)
-        where T : Resource
+        where T : Resource => Read(source) as T;
+
+    internal Resource? Read(SourceResource source)
     {
         if (string.IsNullOrWhiteSpace(source.ResourceJson))
         {
@@ -23,7 +25,7 @@ internal sealed class FhirResourceReader
             Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(source.ResourceJson));
 
             return _deserializer.TryDeserializeResource(ref reader, out Resource? resource, out _)
-                ? resource as T
+                ? resource
                 : null;
         }
         catch (DeserializationFailedException)
