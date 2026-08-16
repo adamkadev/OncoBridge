@@ -53,9 +53,11 @@ public sealed class ImportBatch
 
     public int EntryCount { get; }
 
-    public ImportBatchStatus Status { get; }
+    public ImportBatchStatus Status { get; private set; }
 
-    public string? NormalizerVersion { get; }
+    public string? NormalizerVersion { get; private set; }
+
+    public DateTimeOffset? NormalizedAt { get; private set; }
 
     public static ImportBatch Create(
         ImportBatchId id,
@@ -84,6 +86,23 @@ public sealed class ImportBatch
             entryCount,
             status,
             normalizerVersion);
+    }
+
+    public void MarkNormalized(string normalizerVersion, DateTimeOffset normalizedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(normalizerVersion);
+
+        if (normalizedAt < ReceivedAt)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(normalizedAt),
+                normalizedAt,
+                $"Normalization cannot complete before the batch was received at {ReceivedAt:O}.");
+        }
+
+        Status = ImportBatchStatus.Normalized;
+        NormalizerVersion = normalizerVersion;
+        NormalizedAt = normalizedAt;
     }
 
     public bool VerifyPayloadIntegrity() =>

@@ -62,6 +62,11 @@ internal sealed class ImportBatchConfiguration : IEntityTypeConfiguration<Import
             .HasColumnName("normalizer_version")
             .HasMaxLength(100);
 
+        builder.Property(batch => batch.NormalizedAt)
+            .HasColumnName("normalized_at")
+            .HasColumnType("timestamptz")
+            .HasConversion(OncoBridgeValueConverters.UtcInstant);
+
         builder.HasIndex(batch => batch.ContentHash).HasDatabaseName("ix_import_batch_content_hash");
     }
 }

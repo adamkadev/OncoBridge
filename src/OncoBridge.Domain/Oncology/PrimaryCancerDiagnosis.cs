@@ -6,6 +6,8 @@ namespace OncoBridge.Domain.Oncology;
 
 public sealed class PrimaryCancerDiagnosis
 {
+    private PrimaryCancerDiagnosis() => Code = null!;
+
     public PrimaryCancerDiagnosis(
         PrimaryCancerDiagnosisId id,
         PatientId patientId,

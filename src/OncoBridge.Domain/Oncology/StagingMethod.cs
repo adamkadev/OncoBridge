@@ -2,9 +2,18 @@ using OncoBridge.Domain.Terminology;
 
 namespace OncoBridge.Domain.Oncology;
 
-public sealed record StagingMethod(CodedConcept Code)
+public sealed record StagingMethod
 {
-    public CodedConcept Code { get; } = Code ?? throw new ArgumentNullException(nameof(Code));
+    private StagingMethod() => Code = null!;
+
+    public StagingMethod(CodedConcept code)
+    {
+        ArgumentNullException.ThrowIfNull(code);
+
+        Code = code;
+    }
+
+    public CodedConcept Code { get; }
 
     public override string ToString() => Code.ToString();
 }

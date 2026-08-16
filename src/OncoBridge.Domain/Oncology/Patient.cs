@@ -6,6 +6,10 @@ namespace OncoBridge.Domain.Oncology;
 
 public sealed class Patient
 {
+    private Patient()
+    {
+    }
+
     public Patient(
         PatientId id,
         string? sourceIdentifier = null,

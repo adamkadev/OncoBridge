@@ -6,6 +6,8 @@ namespace OncoBridge.Domain.Oncology;
 
 public sealed class CancerSurgicalProcedure
 {
+    private CancerSurgicalProcedure() => Code = null!;
+
     public CancerSurgicalProcedure(
         Guid id,
         PatientId patientId,

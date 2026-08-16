@@ -9,6 +9,10 @@ public enum TemporalOccurrenceKind
 
 public sealed class TemporalOccurrence : IEquatable<TemporalOccurrence>
 {
+    private TemporalOccurrence()
+    {
+    }
+
     private TemporalOccurrence(PartialDate? date, PartialPeriod? period)
     {
         Date = date;

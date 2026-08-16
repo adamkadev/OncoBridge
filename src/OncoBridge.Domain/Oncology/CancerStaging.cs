@@ -8,6 +8,8 @@ public sealed class CancerStaging
 {
     private readonly List<StageCategory> _categories;
 
+    private CancerStaging() => _categories = [];
+
     public CancerStaging(
         Guid id,
         PatientId patientId,

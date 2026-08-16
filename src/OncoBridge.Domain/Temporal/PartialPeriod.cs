@@ -2,6 +2,10 @@ namespace OncoBridge.Domain.Temporal;
 
 public sealed class PartialPeriod : IEquatable<PartialPeriod>
 {
+    private PartialPeriod()
+    {
+    }
+
     private PartialPeriod(PartialDate? start, PartialDate? end)
     {
         Start = start;
