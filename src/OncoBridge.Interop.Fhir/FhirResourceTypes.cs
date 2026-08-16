@@ -9,4 +9,6 @@ internal static class FhirResourceTypes
     internal const string Condition = "Condition";
 
     internal const string Observation = "Observation";
+
+    internal const string Procedure = "Procedure";
 }

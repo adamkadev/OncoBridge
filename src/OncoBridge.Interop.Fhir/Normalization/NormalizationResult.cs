@@ -11,5 +11,7 @@ public sealed record NormalizationResult
 
     public required IReadOnlyList<CancerStaging> CancerStagings { get; init; }
 
+    public required IReadOnlyList<CancerSurgicalProcedure> CancerSurgicalProcedures { get; init; }
+
     public required IReadOnlyList<Lineage> Lineage { get; init; }
 }

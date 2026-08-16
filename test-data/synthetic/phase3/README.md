@@ -8,6 +8,7 @@ no real or re-identifiable data. Identifiers are `urn:uuid:` literals and an inv
 |---|---|
 | `bundle-primary-cancer.json` | A two-entry FHIR R4 `collection` Bundle: one Patient and one Condition carrying the mCODE `PrimaryCancerCondition` profile. |
 | `bundle-tnm-staging.json` | A six-entry FHIR R4 `collection` Bundle: the same Patient and Condition plus a TNM Stage Group Observation and the three category Observations it composes. |
+| `bundle-surgical-procedure.json` | A two-entry FHIR R4 `collection` Bundle: the same Patient and a Procedure carrying the mCODE `CancerRelatedSurgicalProcedure` profile. It holds **no** Condition. |
 
 ## Why this is separate from `phase2/bundle-minimal.json`
 
@@ -61,8 +62,26 @@ FHIR R4. Phase 3A reads none of them.
 The four Observations make this the first canonical entity assembled from several source resources,
 which is what the entity-level plus field-level lineage in ADR-0003 exists to demonstrate.
 
+## `bundle-surgical-procedure.json` — what each element is present for
+
+| Element | Exercises |
+|---|---|
+| `Procedure.meta.profile` | The only signal Phase 3C accepts for recognising a cancer-related surgical procedure. `Procedure.code` has an extensible binding, so identifying cancer surgery from the code alone would need terminology knowledge ADR-0009 withholds. |
+| `Procedure.subject` | `urn:uuid:` reference resolved against the entry's `fullUrl`. |
+| `Procedure.code` | System, code and display carried through unchanged (ADR-0009). |
+| `Procedure.performedPeriod` = `2019-05` … `2019-06-12` | The point of Phase 3C: `performed[x]` polymorphism through the existing temporal model, with each boundary keeping the precision it was stated at — Month for the start, Day for the end. |
+| `Procedure.bodySite` | FHIR states it `0..*`; the domain records one, selected by the same first-usable-coding policy the diagnosis body site uses. |
+| `Procedure.reasonCode` | Present so the resource is not knowingly contrary to the source profile, which uses it to establish cancer relation. Phase 3C reads none of it — the canonical entity records `PatientId`, `Code`, `Performed` and `BodySite` only. |
+
+**No Condition.** This is deliberate and load-bearing: a `CancerSurgicalProcedure` references its
+Patient, not a diagnosis, so this bundle proves a Procedure can pull its Patient into the canonical
+result with no `PrimaryCancerCondition` anywhere in the batch. It also keeps the bundle's lineage at
+exactly two entity-level rows, which is what the no-field-level-lineage assertion rests on.
+
+`status` is present only so the resource is credible FHIR R4. Phase 3C reads none of it.
+
 ## Scope
 
-Phase 3 normalizes Patient, primary cancer diagnosis and TNM staging. The bundles deliberately carry
-no procedures: adding resources that nothing yet reads would suggest a coverage this phase does not
-have.
+Phase 3 normalizes Patient, primary cancer diagnosis, TNM staging and cancer-related surgical
+procedures. Nothing here carries medications, radiotherapy or treatment plans: adding resources that
+nothing yet reads would suggest a coverage this phase does not have.

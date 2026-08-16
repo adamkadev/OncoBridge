@@ -3,6 +3,7 @@ using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
 using FhirCondition = Hl7.Fhir.Model.Condition;
 using FhirPatient = Hl7.Fhir.Model.Patient;
+using FhirProcedure = Hl7.Fhir.Model.Procedure;
 
 namespace OncoBridge.Interop.Fhir.Normalization;
 
@@ -20,6 +21,7 @@ public sealed class FhirNormalizer
         List<Patient> patients = [];
         List<PrimaryCancerDiagnosis> diagnoses = [];
         List<CancerStaging> stagings = [];
+        List<CancerSurgicalProcedure> surgicalProcedures = [];
         List<Lineage> lineage = [];
 
         foreach ((SourceResource source, FhirCondition condition) in
@@ -61,11 +63,42 @@ public sealed class FhirNormalizer
             lineage.AddRange(StagingLineage(staging, rootSourceId));
         }
 
+        foreach ((SourceResource source, FhirProcedure procedure) in
+            EligibleCancerSurgicalProcedures(sourceResources))
+        {
+            if (index.Resolve(source.BatchId, procedure.Subject, FhirResourceTypes.Patient)
+                is not { } patientSource)
+            {
+                continue;
+            }
+
+            if (NormalizePatient(patientSource, normalizedPatientSources, patients, lineage)
+                is not { } patientId)
+            {
+                continue;
+            }
+
+            if (CancerSurgicalProcedureMapper.ToSurgicalProcedure(procedure, source.Id, patientId)
+                is not { } surgicalProcedure)
+            {
+                continue;
+            }
+
+            surgicalProcedures.Add(surgicalProcedure);
+            lineage.Add(Lineage.ForEntity(
+                NormalizationMetadata.CancerSurgicalProcedureEntityType,
+                surgicalProcedure.Id,
+                source.Id,
+                NormalizationMetadata.CancerSurgicalProcedureTransformation,
+                NormalizationMetadata.CancerSurgicalProcedureTransformationVersion));
+        }
+
         return new NormalizationResult
         {
             Patients = patients,
             PrimaryCancerDiagnoses = diagnoses,
             CancerStagings = stagings,
+            CancerSurgicalProcedures = surgicalProcedures,
             Lineage = lineage,
         };
     }
@@ -84,6 +117,24 @@ public sealed class FhirNormalizer
                 && McodeProfiles.DeclaresPrimaryCancerCondition(condition.Meta))
             {
                 yield return (source, condition);
+            }
+        }
+    }
+
+    private IEnumerable<(SourceResource Source, FhirProcedure Procedure)> EligibleCancerSurgicalProcedures(
+        IEnumerable<SourceResource> sourceResources)
+    {
+        foreach (SourceResource source in sourceResources)
+        {
+            if (source.ResourceType != FhirResourceTypes.Procedure)
+            {
+                continue;
+            }
+
+            if (_reader.Read<FhirProcedure>(source) is { } procedure
+                && McodeProfiles.DeclaresCancerRelatedSurgicalProcedure(procedure.Meta))
+            {
+                yield return (source, procedure);
             }
         }
     }

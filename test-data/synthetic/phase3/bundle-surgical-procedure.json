@@ -1,0 +1,73 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "id": "oncobridge-phase3-surgical-procedure",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-001",
+        "identifier": [
+          {
+            "system": "urn:oncobridge:synthetic:mrn",
+            "value": "SYN-0001"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1968"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:99999999-7777-4777-8777-999999999999",
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "procedure-001",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-related-surgical-procedure"
+          ]
+        },
+        "status": "completed",
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "392021009",
+              "display": "Lumpectomy of breast (procedure)"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        },
+        "performedPeriod": {
+          "start": "2019-05",
+          "end": "2019-06-12"
+        },
+        "bodySite": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "76752008",
+                "display": "Breast structure (body structure)"
+              }
+            ]
+          }
+        ],
+        "reasonCode": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "254837009",
+                "display": "Malignant neoplasm of breast (disorder)"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

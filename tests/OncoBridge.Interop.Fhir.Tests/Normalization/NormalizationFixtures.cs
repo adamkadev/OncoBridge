@@ -9,6 +9,9 @@ internal static class NormalizationFixtures
     internal const string PrimaryCancerConditionProfile =
         "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition";
 
+    internal const string CancerRelatedSurgicalProcedureProfile =
+        "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-cancer-related-surgical-procedure";
+
     internal const string PatientFullUrl = "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa";
 
     internal const string ConditionFullUrl = "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb";
@@ -20,6 +23,8 @@ internal static class NormalizationFixtures
     internal const string RegionalNodesFullUrl = "urn:uuid:eeeeeeee-5555-4555-8555-eeeeeeeeeeee";
 
     internal const string DistantMetastasesFullUrl = "urn:uuid:ffffffff-6666-4666-8666-ffffffffffff";
+
+    internal const string ProcedureFullUrl = "urn:uuid:99999999-7777-4777-8777-999999999999";
 
     internal const string ClinicalStageGroupCode = "21908-9";
 
@@ -50,12 +55,20 @@ internal static class NormalizationFixtures
     internal const string BreastCancerCode =
         """ "code":{"coding":[{"system":"http://snomed.info/sct","code":"254837009"}]} """;
 
+    internal const string LumpectomyCode =
+        """ "code":{"coding":[{"system":"http://snomed.info/sct","code":"392021009"}]} """;
+
     private const string Loinc = "http://loinc.org";
 
     private const string Status = """ "status":"final" """;
 
+    private const string ProcedureStatus = """ "status":"completed" """;
+
     private const string PrimaryCancerProfile =
         $$""" "meta":{"profile":["{{PrimaryCancerConditionProfile}}"]} """;
+
+    private const string SurgicalProcedureProfile =
+        $$""" "meta":{"profile":["{{CancerRelatedSurgicalProcedureProfile}}"]} """;
 
     private static readonly DateTimeOffset ReceivedAt = new(2026, 8, 16, 9, 0, 0, TimeSpan.Zero);
 
@@ -71,6 +84,9 @@ internal static class NormalizationFixtures
     internal static IngestedBundle IngestTnmStagingBundle() =>
         Ingest(SyntheticFixtures.TnmStagingBundleBytes);
 
+    internal static IngestedBundle IngestSurgicalProcedureBundle() =>
+        Ingest(SyntheticFixtures.SurgicalProcedureBundleBytes);
+
     internal static NormalizationResult Normalize(IReadOnlyList<SourceResource> sourceResources) =>
         new FhirNormalizer().Normalize(sourceResources);
 
@@ -82,6 +98,9 @@ internal static class NormalizationFixtures
 
     internal static NormalizationResult NormalizeTnmStagingBundle() =>
         Normalize(IngestTnmStagingBundle().SourceResources);
+
+    internal static NormalizationResult NormalizeSurgicalProcedureBundle() =>
+        Normalize(IngestSurgicalProcedureBundle().SourceResources);
 
     internal static string Bundle(params string[] entries) =>
         $$"""{"resourceType":"Bundle","type":"collection","entry":[{{string.Join(",", entries)}}]}""";
@@ -101,6 +120,17 @@ internal static class NormalizationFixtures
 
     internal static string ObservationEntry(string fullUrl, string logicalId, params string[] members) =>
         Entry(fullUrl, JsonObject([Header("Observation", logicalId), Status, .. members]));
+
+    internal static string ProcedureEntry(string fullUrl, string logicalId, params string[] members) =>
+        Entry(fullUrl, JsonObject([Header("Procedure", logicalId), ProcedureStatus, .. members]));
+
+    internal static string SurgicalProcedureEntry(
+        string fullUrl, string logicalId, string subjectReference, params string[] members) =>
+        ProcedureEntry(
+            fullUrl, logicalId, [SurgicalProcedureProfile, Subject(subjectReference), .. members]);
+
+    internal static string Profile(string canonical) =>
+        $$""" "meta":{"profile":["{{canonical}}"]} """;
 
     internal static string Subject(string reference) =>
         $$""" "subject":{"reference":"{{reference}}"} """;
