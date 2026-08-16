@@ -1,0 +1,80 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "id": "oncobridge-phase4-stage-group-missing-method",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-001",
+        "birthDate": "1968"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-001",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition"
+          ]
+        },
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/us/core/CodeSystem/condition-category",
+                "code": "health-concern"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "254837009"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:cccccccc-3333-4333-8333-cccccccccccc",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "staging-group-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "21908-9"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        },
+        "focus": [
+          {
+            "reference": "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb"
+          }
+        ],
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://cancerstaging.org",
+              "code": "IIA"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

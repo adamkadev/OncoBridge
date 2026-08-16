@@ -8,7 +8,8 @@ here, or anywhere else in this repository.**
 | Directory | Phase | Contents |
 |---|---|---|
 | [`phase2/`](phase2/) | P2 | `bundle-minimal.json` — a four-entry FHIR R4 Bundle used to prove ingestion, byte-exact payload storage and `jsonb` round-tripping. Hand-authored; see [`phase2/README.md`](phase2/README.md). |
-| [`phase3/`](phase3/) | P3 | `bundle-primary-cancer.json` and `bundle-tnm-staging.json` — hand-authored FHIR R4 Bundles used to prove FHIR → canonical normalization of a primary cancer Condition and of a TNM staging assessment; see [`phase3/README.md`](phase3/README.md). |
+| [`phase3/`](phase3/) | P3 | Hand-authored FHIR R4 Bundles used to prove FHIR → canonical normalization of a primary cancer Condition, a TNM staging assessment, a cancer-related surgical Procedure, and all four together; see [`phase3/README.md`](phase3/README.md). |
+| [`phase4/`](phase4/) | P4 | Hand-authored FHIR R4 Bundles carrying **deliberate source defects**, one per source quality check, plus a clean control and the combined acceptance bundle; see [`phase4/README.md`](phase4/README.md). |
 
 ## Rules
 
