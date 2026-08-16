@@ -1,4 +1,4 @@
-# Phase 3 normalization fixture
+# Phase 3 normalization fixtures
 
 **Hand-authored for this repository.** Not generated, not derived from any dataset, and containing
 no real or re-identifiable data. Identifiers are `urn:uuid:` literals and an invented
@@ -7,6 +7,7 @@ no real or re-identifiable data. Identifiers are `urn:uuid:` literals and an inv
 | File | Purpose |
 |---|---|
 | `bundle-primary-cancer.json` | A two-entry FHIR R4 `collection` Bundle: one Patient and one Condition carrying the mCODE `PrimaryCancerCondition` profile. |
+| `bundle-tnm-staging.json` | A six-entry FHIR R4 `collection` Bundle: the same Patient and Condition plus a TNM Stage Group Observation and the three category Observations it composes. |
 
 ## Why this is separate from `phase2/bundle-minimal.json`
 
@@ -18,7 +19,14 @@ support.
 
 Formatting here is conventional, because nothing in Phase 3 asserts anything about the bytes.
 
-## What each element is present for
+## Why staging is a separate bundle
+
+`bundle-primary-cancer.json` is the Phase 3A fixture and asserts, among other things, that a bundle
+without staging produces no field-level lineage. Adding staging observations to it would destroy
+that assertion. The staging bundle carries its own Patient and Condition so each fixture stays
+readable on its own.
+
+## `bundle-primary-cancer.json` — what each element is present for
 
 | Element | Exercises |
 |---|---|
@@ -35,8 +43,26 @@ Formatting here is conventional, because nothing in Phase 3 asserts anything abo
 `clinicalStatus`, `verificationStatus` and `category` are present only so the resource is credible
 FHIR R4. Phase 3A reads none of them.
 
+## `bundle-tnm-staging.json` — what each element is present for
+
+| Element | Exercises |
+|---|---|
+| Stage Group `Observation.code` = LOINC `21908-9` | The clinical stage group code, one of the three cited codes ADR-0009 permits. Recognition reads `system` + `code` only. |
+| Stage Group `Observation.focus` | Links the assessment to the `PrimaryCancerCondition` being staged, by `fullUrl`. |
+| Stage Group `Observation.subject` | Must agree with the patient the focused Condition names. |
+| Stage Group `Observation.hasMember` | The **only** thing that composes T/N/M into this assessment. Stated as a mixture of one `fullUrl` and two `Observation/{id}` references so both resolution forms are exercised. |
+| Stage Group `Observation.valueCodeableConcept` | Maps to `CancerStaging.StageGroup`, carried through unchanged. |
+| Stage Group `Observation.method` | Maps to `CancerStaging.Method`. It is a different concept from `Observation.code` and is never inferred from it. |
+| Stage Group `Observation.effectiveDateTime` = `2019-04-02` | Day precision maps into `CancerStaging.Effective`. |
+| T/N/M `Observation.code` = LOINC `21905-5`, `21906-3`, `21907-1` | Axis classification from the cited LOINC subset. |
+| T/N/M `Observation.valueCodeableConcept` | The actual category result — never fabricated from `Observation.code`. |
+| T/N/M `focus` and `subject` | Stated as a mixture of `fullUrl` and relative references, and consistent with the stage group, so the consistency checks pass on the happy path. |
+
+The four Observations make this the first canonical entity assembled from several source resources,
+which is what the entity-level plus field-level lineage in ADR-0003 exists to demonstrate.
+
 ## Scope
 
-Phase 3A normalizes Patient and primary cancer diagnosis only. The bundle deliberately carries no
-staging observations and no procedures: adding resources that nothing yet reads would suggest a
-coverage this slice does not have.
+Phase 3 normalizes Patient, primary cancer diagnosis and TNM staging. The bundles deliberately carry
+no procedures: adding resources that nothing yet reads would suggest a coverage this phase does not
+have.

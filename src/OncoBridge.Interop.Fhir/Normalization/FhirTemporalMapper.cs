@@ -40,6 +40,13 @@ internal static class FhirTemporalMapper
         return value.Contains(TimeSeparator) ? ToInstant(value) : ToCalendarDate(value);
     }
 
+    internal static PartialDate? ToPartialDate(DataType? value) => value switch
+    {
+        FhirDateTime dateTime => ToPartialDate(dateTime.Value),
+        Instant instant => instant.Value is { } moment ? PartialDate.FromInstant(moment) : null,
+        _ => null,
+    };
+
     internal static PartialPeriod? ToPartialPeriod(Period? period)
     {
         if (period is null)

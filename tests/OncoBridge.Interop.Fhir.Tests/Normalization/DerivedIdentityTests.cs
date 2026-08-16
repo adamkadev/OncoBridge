@@ -109,4 +109,38 @@ public sealed class DerivedIdentityTests
         Assert.NotEqual(first.Patients[0].Id, second.Patients[0].Id);
         Assert.NotEqual(first.PrimaryCancerDiagnoses[0].Id, second.PrimaryCancerDiagnoses[0].Id);
     }
+
+    [Fact]
+    public void Normalizing_the_same_source_resources_twice_yields_the_same_staging_id()
+    {
+        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+
+        NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
+        NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
+
+        Assert.Equal(first.CancerStagings[0].Id, second.CancerStagings[0].Id);
+        Assert.Equal(first.CancerStagings[0].PatientId, second.CancerStagings[0].PatientId);
+    }
+
+    [Fact]
+    public void A_staging_id_derives_from_its_stage_group_source_resource()
+    {
+        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+
+        NormalizationResult result = NormalizationFixtures.Normalize(ingested.SourceResources);
+
+        SourceResource stageGroup = ingested.SourceResources.Single(
+            source => source.SourceLogicalId == "staging-group-001");
+
+        Assert.Equal(stageGroup.Id.Value, result.CancerStagings[0].Id);
+    }
+
+    [Fact]
+    public void Ingesting_the_same_staging_payload_again_derives_a_different_staging_id()
+    {
+        NormalizationResult first = NormalizationFixtures.NormalizeTnmStagingBundle();
+        NormalizationResult second = NormalizationFixtures.NormalizeTnmStagingBundle();
+
+        Assert.NotEqual(first.CancerStagings[0].Id, second.CancerStagings[0].Id);
+    }
 }

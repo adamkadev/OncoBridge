@@ -11,6 +11,7 @@ public sealed class CancerStaging
     public CancerStaging(
         Guid id,
         PatientId patientId,
+        PrimaryCancerDiagnosisId primaryCancerDiagnosisId,
         CodedConcept? stageGroup = null,
         StagingMethod? method = null,
         PartialDate? effective = null,
@@ -45,6 +46,7 @@ public sealed class CancerStaging
 
         Id = id;
         PatientId = patientId;
+        PrimaryCancerDiagnosisId = primaryCancerDiagnosisId;
         StageGroup = stageGroup;
         Method = method;
         Effective = effective;
@@ -54,6 +56,8 @@ public sealed class CancerStaging
     public Guid Id { get; }
 
     public PatientId PatientId { get; }
+
+    public PrimaryCancerDiagnosisId PrimaryCancerDiagnosisId { get; }
 
     public CodedConcept? StageGroup { get; }
 

@@ -7,4 +7,6 @@ internal static class FhirResourceTypes
     internal const string Patient = "Patient";
 
     internal const string Condition = "Condition";
+
+    internal const string Observation = "Observation";
 }

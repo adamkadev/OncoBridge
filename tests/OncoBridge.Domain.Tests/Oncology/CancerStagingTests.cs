@@ -9,6 +9,8 @@ public sealed class CancerStagingTests
     private static readonly CodedConcept AnyStageGroup =
         new("http://cancerstaging.org", "IIA", "Stage IIA");
 
+    private static readonly PrimaryCancerDiagnosisId AnyDiagnosis = new(Guid.NewGuid());
+
     private static CodedConcept Category(string code) => new("http://cancerstaging.org", code);
 
     private static StageCategory CategoryFor(StageAxis axis, string code) =>
@@ -24,6 +26,7 @@ public sealed class CancerStagingTests
         CancerStaging staging = new(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             categories: [t, n, m]);
 
@@ -39,6 +42,7 @@ public sealed class CancerStagingTests
         CancerStaging staging = new(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             categories:
             [
@@ -58,6 +62,7 @@ public sealed class CancerStagingTests
         CancerStaging staging = new(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             categories:
             [
@@ -74,6 +79,7 @@ public sealed class CancerStagingTests
         ArgumentException exception = Assert.Throws<ArgumentException>(() => new CancerStaging(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             categories: [CategoryFor(StageAxis.T, "T2"), CategoryFor(StageAxis.T, "T3")]));
 
@@ -84,7 +90,7 @@ public sealed class CancerStagingTests
     public void An_assessment_asserting_neither_a_stage_group_nor_a_category_is_rejected()
     {
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => new CancerStaging(Guid.NewGuid(), PatientId.New()));
+            () => new CancerStaging(Guid.NewGuid(), PatientId.New(), AnyDiagnosis));
 
         Assert.Contains("stage group or at least one category", exception.Message, StringComparison.Ordinal);
     }
@@ -92,7 +98,8 @@ public sealed class CancerStagingTests
     [Fact]
     public void A_stage_group_alone_is_a_valid_assessment()
     {
-        CancerStaging staging = new(Guid.NewGuid(), PatientId.New(), stageGroup: AnyStageGroup);
+        CancerStaging staging = new(
+            Guid.NewGuid(), PatientId.New(), AnyDiagnosis, stageGroup: AnyStageGroup);
 
         Assert.Empty(staging.Categories);
         Assert.Null(staging.PrimaryTumour);
@@ -104,6 +111,7 @@ public sealed class CancerStagingTests
         CancerStaging staging = new(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             categories: [CategoryFor(StageAxis.T, "T2")]);
 
         Assert.Null(staging.StageGroup);
@@ -115,6 +123,7 @@ public sealed class CancerStagingTests
         Assert.Throws<ArgumentException>(() => new CancerStaging(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             categories: [null!]));
 
@@ -124,6 +133,7 @@ public sealed class CancerStagingTests
         CancerStaging staging = new(
             Guid.NewGuid(),
             PatientId.New(),
+            AnyDiagnosis,
             stageGroup: AnyStageGroup,
             method: null,
             categories: [CategoryFor(StageAxis.T, "T2")]);
@@ -137,7 +147,7 @@ public sealed class CancerStagingTests
         StagingMethod method = new(new CodedConcept("http://snomed.info/sct", "254292007"));
 
         CancerStaging staging = new(
-            Guid.NewGuid(), PatientId.New(), stageGroup: AnyStageGroup, method: method);
+            Guid.NewGuid(), PatientId.New(), AnyDiagnosis, stageGroup: AnyStageGroup, method: method);
 
         Assert.Equal(method, staging.Method);
     }
@@ -148,7 +158,11 @@ public sealed class CancerStagingTests
         List<StageCategory> supplied = [CategoryFor(StageAxis.T, "T2")];
 
         CancerStaging staging = new(
-            Guid.NewGuid(), PatientId.New(), stageGroup: AnyStageGroup, categories: supplied);
+            Guid.NewGuid(),
+            PatientId.New(),
+            AnyDiagnosis,
+            stageGroup: AnyStageGroup,
+            categories: supplied);
 
         supplied.Add(CategoryFor(StageAxis.N, "N1"));
 

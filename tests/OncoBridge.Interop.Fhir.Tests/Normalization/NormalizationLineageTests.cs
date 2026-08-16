@@ -42,7 +42,7 @@ public sealed class NormalizationLineageTests
     }
 
     [Fact]
-    public void Normalization_produces_no_field_level_lineage()
+    public void A_bundle_carrying_no_staging_produces_no_field_level_lineage()
     {
         (_, NormalizationResult result) = NormalizeFixture();
 

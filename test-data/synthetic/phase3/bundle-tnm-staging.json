@@ -1,0 +1,197 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "id": "oncobridge-phase3-tnm-staging",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-001",
+        "identifier": [
+          {
+            "system": "urn:oncobridge:synthetic:mrn",
+            "value": "SYN-0001"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1968"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb",
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-001",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-primary-cancer-condition"
+          ]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "254837009",
+              "display": "Malignant neoplasm of breast (disorder)"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        },
+        "onsetDateTime": "2019-03",
+        "recordedDate": "2019-04-02"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:cccccccc-3333-4333-8333-cccccccccccc",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "staging-group-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "21908-9"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        },
+        "focus": [
+          {
+            "reference": "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb"
+          }
+        ],
+        "effectiveDateTime": "2019-04-02",
+        "method": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "254292007"
+            }
+          ]
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://cancerstaging.org",
+              "code": "IIA",
+              "display": "Stage IIA"
+            }
+          ]
+        },
+        "hasMember": [
+          {
+            "reference": "urn:uuid:dddddddd-4444-4444-8444-dddddddddddd"
+          },
+          {
+            "reference": "Observation/staging-n-001"
+          },
+          {
+            "reference": "Observation/staging-m-001"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:dddddddd-4444-4444-8444-dddddddddddd",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "staging-t-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "21905-5"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "focus": [
+          {
+            "reference": "Condition/condition-001"
+          }
+        ],
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://cancerstaging.org",
+              "code": "T2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:eeeeeeee-5555-4555-8555-eeeeeeeeeeee",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "staging-n-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "21906-3"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
+        },
+        "focus": [
+          {
+            "reference": "urn:uuid:bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb"
+          }
+        ],
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://cancerstaging.org",
+              "code": "N1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ffffffff-6666-4666-8666-ffffffffffff",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "staging-m-001",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "21907-1"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/patient-001"
+        },
+        "focus": [
+          {
+            "reference": "Condition/condition-001"
+          }
+        ],
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://cancerstaging.org",
+              "code": "M0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

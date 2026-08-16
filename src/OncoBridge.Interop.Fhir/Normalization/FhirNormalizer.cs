@@ -16,8 +16,10 @@ public sealed class FhirNormalizer
 
         SourceResourceReferenceIndex index = SourceResourceReferenceIndex.Build(sourceResources);
         HashSet<SourceResourceId> normalizedPatientSources = [];
+        Dictionary<SourceResourceId, DiagnosisAssociation> diagnosedConditions = [];
         List<Patient> patients = [];
         List<PrimaryCancerDiagnosis> diagnoses = [];
+        List<CancerStaging> stagings = [];
         List<Lineage> lineage = [];
 
         foreach ((SourceResource source, FhirCondition condition) in
@@ -42,6 +44,8 @@ public sealed class FhirNormalizer
             }
 
             diagnoses.Add(diagnosis);
+            diagnosedConditions[source.Id] =
+                new DiagnosisAssociation(diagnosis.Id, patientId, patientSource.Id);
             lineage.Add(Lineage.ForEntity(
                 NormalizationMetadata.PrimaryCancerDiagnosisEntityType,
                 diagnosis.Id.Value,
@@ -50,10 +54,18 @@ public sealed class FhirNormalizer
                 NormalizationMetadata.PrimaryCancerDiagnosisTransformationVersion));
         }
 
+        foreach ((CancerStaging staging, SourceResourceId rootSourceId) in
+            new CancerStagingMapper(_reader, index).Normalize(sourceResources, diagnosedConditions))
+        {
+            stagings.Add(staging);
+            lineage.AddRange(StagingLineage(staging, rootSourceId));
+        }
+
         return new NormalizationResult
         {
             Patients = patients,
             PrimaryCancerDiagnoses = diagnoses,
+            CancerStagings = stagings,
             Lineage = lineage,
         };
     }
@@ -107,4 +119,34 @@ public sealed class FhirNormalizer
 
         return patient.Id;
     }
+
+    private static IEnumerable<Lineage> StagingLineage(
+        CancerStaging staging, SourceResourceId rootSourceId)
+    {
+        yield return Lineage.ForEntity(
+            NormalizationMetadata.CancerStagingEntityType,
+            staging.Id,
+            rootSourceId,
+            NormalizationMetadata.CancerStagingTransformation,
+            NormalizationMetadata.CancerStagingTransformationVersion);
+
+        foreach (StageCategory category in staging.Categories)
+        {
+            yield return Lineage.ForField(
+                NormalizationMetadata.CancerStagingEntityType,
+                staging.Id,
+                FieldPathOf(category.Axis),
+                category.SourceResourceId,
+                NormalizationMetadata.CancerStagingTransformation,
+                NormalizationMetadata.CancerStagingTransformationVersion);
+        }
+    }
+
+    private static string FieldPathOf(StageAxis axis) => axis switch
+    {
+        StageAxis.T => NormalizationMetadata.PrimaryTumourFieldPath,
+        StageAxis.N => NormalizationMetadata.RegionalNodesFieldPath,
+        StageAxis.M => NormalizationMetadata.DistantMetastasesFieldPath,
+        _ => throw new InvalidOperationException($"Unhandled stage axis '{axis}'."),
+    };
 }
