@@ -16,6 +16,9 @@ internal sealed record AcceptanceImport(Guid ImportBatchId, JsonElement Import, 
     internal Task<JsonElement> RecordAsync(HttpClient client) =>
         ApiFixtures.GetJsonAsync(client, $"/api/v1/patients/{PatientId}/record");
 
+    internal Task<JsonElement> TimelineAsync(HttpClient client) =>
+        ApiFixtures.GetJsonAsync(client, $"/api/v1/patients/{PatientId}/timeline");
+
     internal Task<JsonElement> FindingsAsync(HttpClient client) =>
         ApiFixtures.GetJsonAsync(client, $"{ApiFixtures.ImportsRoute}/{ImportBatchId}/findings");
 

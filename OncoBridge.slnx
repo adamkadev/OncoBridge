@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OncoBridge.Api.Tests/OncoBridge.Api.Tests.csproj" />
+    <Project Path="tests/OncoBridge.Application.Tests/OncoBridge.Application.Tests.csproj" />
     <Project Path="tests/OncoBridge.Domain.Tests/OncoBridge.Domain.Tests.csproj" />
     <Project Path="tests/OncoBridge.Infrastructure.Tests/OncoBridge.Infrastructure.Tests.csproj" />
     <Project Path="tests/OncoBridge.Interop.Fhir.Tests/OncoBridge.Interop.Fhir.Tests.csproj" />

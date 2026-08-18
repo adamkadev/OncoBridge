@@ -190,6 +190,42 @@
         }
       }
     },
+    "/api/v1/patients/{patientId}/timeline": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Read the projected longitudinal timeline of a patient",
+        "description": "Projects the canonical record onto a sequence of temporal groups. Events are sequenced by their temporal anchor, projected on stated bounds only, and a period is anchored by its stated start bound. Anchors that compare as the same instant, or whose stated precision admits no ordering, share one group rather than being given an order the record does not state. An event with no usable anchor is returned unsequenced, with the reason and every bound it did state.",
+        "operationId": "GetPatientTimeline",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientTimelineResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/domain/{domainEntityId}/provenance": {
       "get": {
         "tags": [
@@ -651,6 +687,36 @@
           }
         }
       },
+      "PatientTimelineResponse": {
+        "required": [
+          "patientId",
+          "projectionPolicy",
+          "groups",
+          "unsequencedEvents"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectionPolicy": {
+            "$ref": "#/components/schemas/TimelineProjectionPolicyResponse"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineGroupResponse"
+            }
+          },
+          "unsequencedEvents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnsequencedTimelineEventResponse"
+            }
+          }
+        }
+      },
       "PrimaryCancerDiagnosisResponse": {
         "required": [
           "id",
@@ -862,6 +928,189 @@
                 "$ref": "#/components/schemas/PartialPeriodResponse"
               }
             ]
+          }
+        }
+      },
+      "TimelineDiagnosisDetailResponse": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/CodedConceptResponse"
+          },
+          "recordedDate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          }
+        }
+      },
+      "TimelineEventResponse": {
+        "required": [
+          "entityId",
+          "entityKind",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entityKind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "anchor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          },
+          "occurrence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TemporalOccurrenceResponse"
+              }
+            ]
+          },
+          "diagnosis": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimelineDiagnosisDetailResponse"
+              }
+            ]
+          },
+          "staging": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimelineStagingDetailResponse"
+              }
+            ]
+          },
+          "procedure": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TimelineProcedureDetailResponse"
+              }
+            ]
+          }
+        }
+      },
+      "TimelineGroupResponse": {
+        "required": [
+          "sequence",
+          "kind",
+          "events"
+        ],
+        "type": "object",
+        "properties": {
+          "sequence": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEventResponse"
+            }
+          }
+        }
+      },
+      "TimelineProcedureDetailResponse": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/CodedConceptResponse"
+          }
+        }
+      },
+      "TimelineProjectionPolicyResponse": {
+        "required": [
+          "version",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "TimelineStagingDetailResponse": {
+        "required": [
+          "categories"
+        ],
+        "type": "object",
+        "properties": {
+          "stageGroup": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageCategoryResponse"
+            }
+          }
+        }
+      },
+      "UnsequencedTimelineEventResponse": {
+        "required": [
+          "reason",
+          "event"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "event": {
+            "$ref": "#/components/schemas/TimelineEventResponse"
           }
         }
       }

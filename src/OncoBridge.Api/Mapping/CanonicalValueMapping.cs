@@ -1,4 +1,5 @@
 using OncoBridge.Api.Contracts;
+using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Temporal;
 using OncoBridge.Domain.Terminology;
 
@@ -15,6 +16,13 @@ internal static class CanonicalValueMapping
 
     internal static CodedConceptResponse? ToResponseOrNull(CodedConcept? concept) =>
         concept is null ? null : ToResponse(concept);
+
+    internal static StageCategoryResponse ToResponse(StageCategory category) => new()
+    {
+        Axis = category.Axis.ToString(),
+        Code = ToResponse(category.Code),
+        SourceResourceId = category.SourceResourceId.Value,
+    };
 
     internal static PartialDateResponse ToResponse(PartialDate date) => new()
     {

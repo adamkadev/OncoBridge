@@ -97,13 +97,14 @@ public sealed class ApiContractTests
     }
 
     [Fact]
-    public async Task The_five_V1_routes_are_the_only_business_endpoints() =>
+    public async Task The_six_V1_routes_are_the_only_business_endpoints() =>
         Assert.Equal(
             [
                 "GetDomainProvenance",
                 "GetImport",
                 "GetImportFindings",
                 "GetPatientRecord",
+                "GetPatientTimeline",
                 "ImportBundle",
             ],
             await OperationIdsAsync());

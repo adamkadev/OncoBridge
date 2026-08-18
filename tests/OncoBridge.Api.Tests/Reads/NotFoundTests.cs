@@ -34,6 +34,15 @@ public sealed class NotFoundTests(ApiPostgreSqlFixture fixture)
     }
 
     [Fact]
+    public async Task The_timeline_of_an_unknown_patient_is_not_found()
+    {
+        using HttpResponseMessage response =
+            await fixture.Client.GetAsync($"/api/v1/patients/{Guid.NewGuid()}/timeline");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task An_id_with_no_provenance_is_not_found()
     {
         using HttpResponseMessage response =

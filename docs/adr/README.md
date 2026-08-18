@@ -18,6 +18,7 @@ that drifts out of date beside the code it describes.
 | [0007](0007-modular-monolith-enforced-boundary.md) | Modular monolith with an executably enforced dependency boundary | Accepted |
 | [0009](0009-no-terminology-server-in-v1.md) | No terminology server in V1 | Accepted |
 | [0010](0010-staged-fhir-bundle-extraction.md) | Staged FHIR bundle extraction, nullable source metadata, ingestion limits | Accepted |
+| [0011](0011-timeline-temporal-projection-policy.md) | Timeline temporal projection policy: anchors, conservative components, verified group order | Accepted |
 
 ## Deferred
 

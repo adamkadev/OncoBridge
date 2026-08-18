@@ -42,15 +42,10 @@ internal static class PatientRecordMapping
         Effective = CanonicalValueMapping.ToResponseOrNull(staging.Effective),
         Categories =
         [
-            .. staging.Categories.OrderBy(category => category.Axis).Select(ToResponse),
+            .. staging.Categories
+                .OrderBy(category => category.Axis)
+                .Select(CanonicalValueMapping.ToResponse),
         ],
-    };
-
-    private static StageCategoryResponse ToResponse(StageCategory category) => new()
-    {
-        Axis = category.Axis.ToString(),
-        Code = CanonicalValueMapping.ToResponse(category.Code),
-        SourceResourceId = category.SourceResourceId.Value,
     };
 
     private static CancerSurgicalProcedureResponse ToResponse(CancerSurgicalProcedure procedure) => new()

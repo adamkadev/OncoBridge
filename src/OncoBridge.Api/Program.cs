@@ -6,6 +6,7 @@ using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Application.Quality;
 using OncoBridge.Application.Reading;
+using OncoBridge.Application.Timeline;
 using OncoBridge.Domain.Quality;
 using OncoBridge.Infrastructure.Persistence;
 using OncoBridge.Interop.Fhir.Ingestion;
@@ -37,6 +38,7 @@ builder.Services.AddScoped<ImportPayload>();
 builder.Services.AddScoped<GetImport>();
 builder.Services.AddScoped<GetImportFindings>();
 builder.Services.AddScoped<GetPatientRecord>();
+builder.Services.AddScoped<GetPatientTimeline>();
 builder.Services.AddScoped<GetDomainProvenance>();
 
 builder.Services.AddOpenApi(ApiMetadata.DocumentName, OncoBridgeOpenApi.Describe);
