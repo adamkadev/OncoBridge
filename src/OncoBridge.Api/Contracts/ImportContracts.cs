@@ -47,4 +47,6 @@ public sealed record ImportResponse
     public DateTimeOffset? NormalizedAt { get; init; }
 
     public required IReadOnlyList<SourceResourceResponse> SourceResources { get; init; }
+
+    public required IReadOnlyList<Guid> PatientIds { get; init; }
 }

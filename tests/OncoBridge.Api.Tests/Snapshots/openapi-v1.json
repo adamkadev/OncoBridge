@@ -435,7 +435,8 @@
           "contentHash",
           "entryCount",
           "status",
-          "sourceResources"
+          "sourceResources",
+          "patientIds"
         ],
         "type": "object",
         "properties": {
@@ -493,6 +494,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SourceResourceResponse"
+            }
+          },
+          "patientIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         }

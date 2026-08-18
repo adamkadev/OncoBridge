@@ -20,6 +20,7 @@ internal static class ImportMapping
         NormalizerVersion = details.Import.NormalizerVersion,
         NormalizedAt = details.Import.NormalizedAt,
         SourceResources = [.. details.SourceResources.Select(ToResponse)],
+        PatientIds = [.. details.PatientIds.Select(id => id.Value)],
     };
 
     private static SourceResourceResponse ToResponse(SourceResource resource) => new()

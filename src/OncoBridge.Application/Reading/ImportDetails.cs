@@ -31,4 +31,6 @@ public sealed record ImportDetails
     public required ImportSummary Import { get; init; }
 
     public required IReadOnlyList<SourceResource> SourceResources { get; init; }
+
+    public required IReadOnlyList<PatientId> PatientIds { get; init; }
 }

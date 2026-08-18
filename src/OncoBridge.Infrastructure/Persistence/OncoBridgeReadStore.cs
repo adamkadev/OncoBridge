@@ -42,7 +42,20 @@ public sealed class OncoBridgeReadStore(OncoBridgeDbContext context) : IOncoBrid
             .OrderBy(resource => resource.EntryIndex)
             .ToListAsync(cancellationToken);
 
-        return new ImportDetails { Import = summary, SourceResources = sourceResources };
+        List<PatientId> patientIds = await context.Patients
+            .AsNoTracking()
+            .Where(patient =>
+                EF.Property<ImportBatchId>(patient, CanonicalColumns.BatchIdProperty) == batchId)
+            .OrderBy(patient => patient.Id)
+            .Select(patient => patient.Id)
+            .ToListAsync(cancellationToken);
+
+        return new ImportDetails
+        {
+            Import = summary,
+            SourceResources = sourceResources,
+            PatientIds = patientIds,
+        };
     }
 
     public async Task<PatientRecord?> GetPatientRecordAsync(
