@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  WEB: src/oncobridge-web
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - run: dotnet restore
+
+      - run: dotnet build --no-restore
+
+      - run: dotnet test --no-build
+
+      - run: dotnet tool restore
+
+      - name: Verify the model matches the migrations
+        run: dotnet ef migrations has-pending-model-changes --project src/OncoBridge.Infrastructure
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/oncobridge-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: src/oncobridge-web/package-lock.json
+
+      - run: npm ci
+
+      - name: Verify the generated client matches the OpenAPI snapshot
+        run: npm run api:check
+
+      - run: npm run test:ci
+
+      - run: npm run build
+
+      - run: npx prettier --check .
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: src/oncobridge-web/package-lock.json
+
+      - run: npm ci
+        working-directory: src/oncobridge-web
+
+      - run: npx playwright install --with-deps chromium
+        working-directory: src/oncobridge-web
+
+      - name: Real-stack acceptance journey
+        run: npm run e2e
+        working-directory: src/oncobridge-web
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: src/oncobridge-web/test-results
+          retention-days: 7
+
+  compose-smoke:
+    name: Compose smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: One-command stack, real import through the reverse proxy
+        run: ./scripts/compose-smoke.sh
