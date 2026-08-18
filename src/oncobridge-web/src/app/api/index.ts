@@ -19,12 +19,20 @@ export type { PartialDateResponse } from './models/partial-date-response';
 export type { PartialPeriodResponse } from './models/partial-period-response';
 export type { PatientRecordResponse } from './models/patient-record-response';
 export type { PatientResponse } from './models/patient-response';
+export type { PatientTimelineResponse } from './models/patient-timeline-response';
 export type { PrimaryCancerDiagnosisResponse } from './models/primary-cancer-diagnosis-response';
 export type { ProblemDetails } from './models/problem-details';
 export type { ProvenanceResponse } from './models/provenance-response';
 export type { SourceResourceResponse } from './models/source-resource-response';
 export type { StageCategoryResponse } from './models/stage-category-response';
 export type { TemporalOccurrenceResponse } from './models/temporal-occurrence-response';
+export type { TimelineDiagnosisDetailResponse } from './models/timeline-diagnosis-detail-response';
+export type { TimelineEventResponse } from './models/timeline-event-response';
+export type { TimelineGroupResponse } from './models/timeline-group-response';
+export type { TimelineProcedureDetailResponse } from './models/timeline-procedure-detail-response';
+export type { TimelineProjectionPolicyResponse } from './models/timeline-projection-policy-response';
+export type { TimelineStagingDetailResponse } from './models/timeline-staging-detail-response';
+export type { UnsequencedTimelineEventResponse } from './models/unsequenced-timeline-event-response';
 
 export type { ImportBundle$Params as ImportBundle$Params } from './fn/imports/import-bundle';
 export { importBundle as importBundle } from './fn/imports/import-bundle';
@@ -34,5 +42,7 @@ export type { GetImportFindings$Params as GetImportFindings$Params } from './fn/
 export { getImportFindings as getImportFindings } from './fn/quality/get-import-findings';
 export type { GetPatientRecord$Params as GetPatientRecord$Params } from './fn/patients/get-patient-record';
 export { getPatientRecord as getPatientRecord } from './fn/patients/get-patient-record';
+export type { GetPatientTimeline$Params as GetPatientTimeline$Params } from './fn/patients/get-patient-timeline';
+export { getPatientTimeline as getPatientTimeline } from './fn/patients/get-patient-timeline';
 export type { GetDomainProvenance$Params as GetDomainProvenance$Params } from './fn/provenance/get-domain-provenance';
 export { getDomainProvenance as getDomainProvenance } from './fn/provenance/get-domain-provenance';

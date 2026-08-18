@@ -9,5 +9,7 @@ export type { GetImportFindings$Params as GetImportFindings$Params } from './fn/
 export { getImportFindings as getImportFindings } from './fn/quality/get-import-findings';
 export type { GetPatientRecord$Params as GetPatientRecord$Params } from './fn/patients/get-patient-record';
 export { getPatientRecord as getPatientRecord } from './fn/patients/get-patient-record';
+export type { GetPatientTimeline$Params as GetPatientTimeline$Params } from './fn/patients/get-patient-timeline';
+export { getPatientTimeline as getPatientTimeline } from './fn/patients/get-patient-timeline';
 export type { GetDomainProvenance$Params as GetDomainProvenance$Params } from './fn/provenance/get-domain-provenance';
 export { getDomainProvenance as getDomainProvenance } from './fn/provenance/get-domain-provenance';
