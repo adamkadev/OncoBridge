@@ -28,8 +28,6 @@ export function findingViewsOf(
 
 export function relatedCheckIdsOf(views: readonly FindingView[]): readonly string[] {
   return [
-    ...new Set(
-      views.filter((view) => view.relatedToSelection).map((view) => view.finding.checkId),
-    ),
+    ...new Set(views.filter((view) => view.relatedToSelection).map((view) => view.finding.checkId)),
   ];
 }

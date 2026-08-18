@@ -83,9 +83,9 @@ import { PaneEmpty, PaneError, PaneLoading } from '../shared/pane-state';
       }
 
       <p pane-footnote class="ob-footnote">
-        Whole-entity record first, then one record per derived field. Markers are assigned by matching
-        each lineage sourceResourceId to the import's source resources — the same rows listed in pane
-        01.
+        Whole-entity record first, then one record per derived field. Markers are assigned by
+        matching each lineage sourceResourceId to the import's source resources — the same rows
+        listed in pane 01.
       </p>
     </ob-pane>
   `,
@@ -210,14 +210,16 @@ export class ProvenancePane {
     return `${count} lineage ${count === 1 ? 'record' : 'records'}${this.entityLabel() ? ' · ' + this.entityLabel() : ''}`;
   });
 
-  protected readonly transformationSummary = computed(() => [
-    ...new Set(
-      this.records().map(
-        (record) =>
-          `${record.lineage.transformationName} ${record.lineage.transformationVersion}`,
+  protected readonly transformationSummary = computed(() =>
+    [
+      ...new Set(
+        this.records().map(
+          (record) =>
+            `${record.lineage.transformationName} ${record.lineage.transformationVersion}`,
+        ),
       ),
-    ),
-  ].join(' · '));
+    ].join(' · '),
+  );
 
   protected readonly explanation = computed(() => {
     const records = this.records();
@@ -233,7 +235,9 @@ export class ProvenancePane {
       return 'not in this import';
     }
 
-    const hash = source.contentHash ? `${source.contentHash.slice(0, 4)}…${source.contentHash.slice(-4)} · ` : '';
+    const hash = source.contentHash
+      ? `${source.contentHash.slice(0, 4)}…${source.contentHash.slice(-4)} · `
+      : '';
 
     return `${hash}entry ${asNumber(source.entryIndex)}`;
   }

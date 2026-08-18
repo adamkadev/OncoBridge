@@ -87,7 +87,9 @@ import { StandardsNote } from '../shared/standards-note';
                 @if (problem.detail) {
                   <p class="failure-detail">{{ problem.detail }}</p>
                 }
-                <p class="ob-hint">The message is the API's problem detail. No stack traces are shown.</p>
+                <p class="ob-hint">
+                  The message is the API's problem detail. No stack traces are shown.
+                </p>
               </div>
             </div>
           }
@@ -103,11 +105,11 @@ import { StandardsNote } from '../shared/standards-note';
             </button>
             <p class="ob-hint" aria-live="polite">
               @if (busy()) {
-                Preserving bytes, normalizing, assessing quality. No progress estimate is available —
-                the API returns when the batch is queryable.
+                Preserving bytes, normalizing, assessing quality. No progress estimate is available
+                — the API returns when the batch is queryable.
               } @else if (file()) {
-                Normalization and quality assessment run within this request; the inspector opens when
-                it returns.
+                Normalization and quality assessment run within this request; the inspector opens
+                when it returns.
               } @else {
                 Select a file to enable import.
               }

@@ -8,10 +8,7 @@ import {
 } from '../api';
 
 export type EntityKind =
-  | 'Patient'
-  | 'PrimaryCancerDiagnosis'
-  | 'CancerStaging'
-  | 'CancerSurgicalProcedure';
+  'Patient' | 'PrimaryCancerDiagnosis' | 'CancerStaging' | 'CancerSurgicalProcedure';
 
 export interface EntityInstance {
   readonly id: string;

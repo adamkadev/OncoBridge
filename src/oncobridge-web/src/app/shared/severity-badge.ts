@@ -4,7 +4,12 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   selector: 'ob-severity-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span class="badge" [attr.data-severity]="severity()">
-    <span class="swatch" [class.hollow]="hollow()" [class.round]="round()" aria-hidden="true"></span>
+    <span
+      class="swatch"
+      [class.hollow]="hollow()"
+      [class.round]="round()"
+      aria-hidden="true"
+    ></span>
     {{ severity() }}
   </span>`,
   styles: `

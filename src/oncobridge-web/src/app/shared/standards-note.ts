@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'ob-standards-note',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `OncoBridge conformance checks — a subset of mCODE STU4. Not full mCODE profile
-    validation.`,
+  validation.`,
   styles: `
     :host {
       display: block;

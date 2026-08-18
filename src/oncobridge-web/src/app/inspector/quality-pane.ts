@@ -37,7 +37,11 @@ import { SeverityBadge } from '../shared/severity-badge';
         <ul class="findings">
           @for (view of views(); track view.finding.checkId + view.finding.target.id) {
             <li class="finding" [class.related]="view.relatedToSelection">
-              <span class="bar" [attr.data-severity]="view.finding.severity" aria-hidden="true"></span>
+              <span
+                class="bar"
+                [attr.data-severity]="view.finding.severity"
+                aria-hidden="true"
+              ></span>
               <div class="body">
                 <div class="head">
                   <span class="ob-mono check">{{ view.finding.checkId }}</span>

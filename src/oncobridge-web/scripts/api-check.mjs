@@ -16,7 +16,10 @@ function walk(root) {
       if (statSync(absolute).isDirectory()) {
         visit(absolute);
       } else {
-        files.set(relative(root, absolute).split(sep).join(posix.sep), readFileSync(absolute, 'utf8'));
+        files.set(
+          relative(root, absolute).split(sep).join(posix.sep),
+          readFileSync(absolute, 'utf8'),
+        );
       }
     }
   };
@@ -47,7 +50,9 @@ try {
   );
 
   if (missing.length === 0 && extra.length === 0 && changed.length === 0) {
-    console.log(`api:check — ${expected.size} generated files match the committed OpenAPI contract.`);
+    console.log(
+      `api:check — ${expected.size} generated files match the committed OpenAPI contract.`,
+    );
     process.exit(0);
   }
 
@@ -65,7 +70,9 @@ try {
     console.error(`  differs from the generated output: ${file}`);
   }
 
-  console.error('Run `npm run api:generate` and commit the result; never hand-edit generated files.');
+  console.error(
+    'Run `npm run api:generate` and commit the result; never hand-edit generated files.',
+  );
   process.exit(1);
 } finally {
   rmSync(temp, { recursive: true, force: true });

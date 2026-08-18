@@ -10,7 +10,8 @@
     "test:ci": "ng test --watch=false",
     "api:generate": "ng-openapi-gen",
     "api:check": "node scripts/api-check.mjs",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

@@ -116,7 +116,9 @@ import { TemporalOccurrence } from '../shared/temporal-occurrence';
                 </span>
                 <dt>Category {{ category.axis }}</dt>
                 <dd><ob-coded-value [concept]="category.code" /></dd>
-                <span class="from">{{ fromLabel(markerOfSourceId(category.sourceResourceId)) }}</span>
+                <span class="from">{{
+                  fromLabel(markerOfSourceId(category.sourceResourceId))
+                }}</span>
               </div>
             }
 
@@ -125,7 +127,9 @@ import { TemporalOccurrence } from '../shared/temporal-occurrence';
               <dt>Associated diagnosis</dt>
               <dd class="stacked">
                 <span>{{ diagnosisLabel(value.primaryCancerDiagnosisId) }}</span>
-                <span class="ob-id">PrimaryCancerDiagnosis · {{ value.primaryCancerDiagnosisId }}</span>
+                <span class="ob-id"
+                  >PrimaryCancerDiagnosis · {{ value.primaryCancerDiagnosisId }}</span
+                >
               </dd>
               <span class="from other">other entity</span>
             </div>
@@ -298,8 +302,8 @@ import { TemporalOccurrence } from '../shared/temporal-occurrence';
       }
 
       <p pane-footnote class="ob-footnote">
-        Evidence markers annotate only this entity's own lineage. Related canonical entities are shown
-        for context and never carry an evidence marker.
+        Evidence markers annotate only this entity's own lineage. Related canonical entities are
+        shown for context and never carry an evidence marker.
       </p>
     </ob-pane>
   `,
@@ -457,7 +461,8 @@ export class NormalizedPane {
   protected markerOfSourceId(sourceResourceId: string): string | null {
     return (
       this.evidence().find(
-        (record) => record.lineage.sourceResourceId === sourceResourceId && !!record.lineage.fieldPath,
+        (record) =>
+          record.lineage.sourceResourceId === sourceResourceId && !!record.lineage.fieldPath,
       )?.marker ?? null
     );
   }

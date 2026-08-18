@@ -191,8 +191,7 @@ export function findingsResponse(): FindingResponse[] {
       severity: 'Error',
       message: 'The TNM stage group does not state a staging method.',
       target: { kind: 'SourceResource', id: sourceIds.stageGroup, domainEntityType: null },
-      citation:
-        'https://hl7.org/fhir/us/mcode/STU4/StructureDefinition-mcode-tnm-stage-group.html',
+      citation: 'https://hl7.org/fhir/us/mcode/STU4/StructureDefinition-mcode-tnm-stage-group.html',
       expected: 'Observation.method to be present, which mCODE STU4 states as cardinality 1..1',
       actual: 'Observation.method is absent',
     },
@@ -205,8 +204,7 @@ export function findingsResponse(): FindingResponse[] {
       target: { kind: 'SourceResource', id: sourceIds.procedure, domainEntityType: null },
       citation: 'https://hl7.org/fhir/R4/bundle.html',
       expected: 'a reference resolving to exactly one resource in the same import batch',
-      actual:
-        "Procedure.reasonReference[0] = 'urn:uuid:12345678-8888-4888-8888-121212121212'",
+      actual: "Procedure.reasonReference[0] = 'urn:uuid:12345678-8888-4888-8888-121212121212'",
     },
   ];
 }

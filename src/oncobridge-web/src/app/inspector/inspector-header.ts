@@ -33,7 +33,9 @@ import { asNumber } from '../core/api-values';
         </div>
         <div class="cell">
           <dt class="ob-micro">Resources</dt>
-          <dd class="ob-mono">{{ asNumber(batch.entryCount) }} · {{ batch.bundleType ?? 'unknown' }}</dd>
+          <dd class="ob-mono">
+            {{ asNumber(batch.entryCount) }} · {{ batch.bundleType ?? 'unknown' }}
+          </dd>
         </div>
         <div class="cell">
           <dt class="ob-micro">Normalizer</dt>

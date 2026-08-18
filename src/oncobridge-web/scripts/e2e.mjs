@@ -1,4 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -7,12 +10,9 @@ const repoRoot = join(webRoot, '..', '..');
 
 const container = 'oncobridge-e2e';
 const postgresImage = 'postgres:18.6';
-const postgresPort = 55433;
-const apiOrigin = 'http://127.0.0.1:5080';
-const webOrigin = 'http://127.0.0.1:4200';
-const connectionString = `Host=127.0.0.1;Port=${postgresPort};Database=oncobridge;Username=oncobridge;Password=oncobridge`;
 
 const children = [];
+const workspace = mkdtempSync(join(tmpdir(), 'oncobridge-e2e-'));
 let containerStarted = false;
 
 function run(command, args, options = {}) {
@@ -21,6 +21,16 @@ function run(command, args, options = {}) {
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
   }
+}
+
+function capture(command, args) {
+  const result = spawnSync(command, args, { encoding: 'utf8' });
+
+  if (result.status !== 0) {
+    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+  }
+
+  return result.stdout.trim();
 }
 
 function start(name, command, args, options = {}) {
@@ -37,6 +47,31 @@ function start(name, command, args, options = {}) {
   children.push(child);
 
   return child;
+}
+
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+
+    probe.unref();
+    probe.on('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address();
+
+      probe.close(() => resolve(port));
+    });
+  });
+}
+
+function publishedPort(containerPort) {
+  const mapping = capture('docker', ['port', container, String(containerPort)]).split('\n')[0];
+  const port = mapping.match(/:(\d+)$/)?.[1];
+
+  if (!port) {
+    throw new Error(`docker published no host port for ${containerPort}, reported '${mapping}'`);
+  }
+
+  return Number(port);
 }
 
 async function waitFor(label, check, attempts = 90) {
@@ -82,6 +117,8 @@ function cleanUp() {
     spawnSync('docker', ['rm', '-f', container], { stdio: 'ignore' });
     console.log('[harness] PostgreSQL container removed');
   }
+
+  rmSync(workspace, { recursive: true, force: true });
 }
 
 let exitCode = 0;
@@ -102,10 +139,27 @@ try {
     '-e',
     'POSTGRES_PASSWORD=oncobridge',
     '-p',
-    `${postgresPort}:5432`,
+    '127.0.0.1::5432',
     postgresImage,
   ]);
   containerStarted = true;
+
+  const postgresPort = publishedPort(5432);
+  const apiPort = await freePort();
+  const webPort = await freePort();
+
+  const apiOrigin = `http://127.0.0.1:${apiPort}`;
+  const webOrigin = `http://127.0.0.1:${webPort}`;
+  const connectionString = `Host=127.0.0.1;Port=${postgresPort};Database=oncobridge;Username=oncobridge;Password=oncobridge`;
+
+  console.log(`[harness] postgres ${postgresPort} · api ${apiPort} · web ${webPort}`);
+
+  const proxyConfig = join(workspace, 'proxy.conf.json');
+
+  writeFileSync(
+    proxyConfig,
+    JSON.stringify({ '/api': { target: apiOrigin, secure: false, changeOrigin: false } }),
+  );
 
   await waitFor('PostgreSQL', async () => postgresReady(), 60);
 
@@ -138,12 +192,29 @@ try {
   await waitFor('API', () => reachable(`${apiOrigin}/openapi/v1.json`));
 
   console.log('[harness] starting Angular');
-  start('web', 'npx', ['ng', 'serve', '--host', '127.0.0.1', '--port', '4200'], { cwd: webRoot });
+  start(
+    'web',
+    'npx',
+    [
+      'ng',
+      'serve',
+      '--host',
+      '127.0.0.1',
+      '--port',
+      String(webPort),
+      '--proxy-config',
+      proxyConfig,
+    ],
+    { cwd: webRoot },
+  );
 
   await waitFor('Angular', () => reachable(webOrigin));
 
   console.log('[harness] running Playwright');
-  run('npx', ['playwright', 'test'], { cwd: webRoot });
+  run('npx', ['playwright', 'test'], {
+    cwd: webRoot,
+    env: { ...process.env, ONCOBRIDGE_WEB_ORIGIN: webOrigin },
+  });
 } catch (error) {
   console.error(`[harness] ${error instanceof Error ? error.message : error}`);
   exitCode = 1;

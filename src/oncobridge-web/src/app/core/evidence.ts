@@ -51,7 +51,9 @@ export function markerOfSource(
   records: readonly EvidenceRecord[],
   sourceResourceId: string,
 ): string | null {
-  return records.find((record) => record.lineage.sourceResourceId === sourceResourceId)?.marker ?? null;
+  return (
+    records.find((record) => record.lineage.sourceResourceId === sourceResourceId)?.marker ?? null
+  );
 }
 
 export function markerOfFieldPath(

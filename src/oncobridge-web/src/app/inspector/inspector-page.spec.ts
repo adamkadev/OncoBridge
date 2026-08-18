@@ -62,7 +62,9 @@ describe('InspectorPage', () => {
 
   async function flushImport(scenario: Scenario = {}): Promise<void> {
     request(`/api/v1/imports/${importBatchId}`).flush(scenario.import ?? importResponse());
-    request(`/api/v1/imports/${importBatchId}/findings`).flush(scenario.findings ?? findingsResponse());
+    request(`/api/v1/imports/${importBatchId}/findings`).flush(
+      scenario.findings ?? findingsResponse(),
+    );
     await settle();
   }
 
@@ -156,9 +158,7 @@ describe('InspectorPage', () => {
       all('ob-inspector-header button')[0].click();
       await settle();
 
-      expect(all('[data-testid="payload-hash"]')[0].textContent).toBe(
-        importResponse().contentHash,
-      );
+      expect(all('[data-testid="payload-hash"]')[0].textContent).toBe(importResponse().contentHash);
     });
   });
 
@@ -166,12 +166,14 @@ describe('InspectorPage', () => {
     it('offers one choice per canonical entity instance', async () => {
       await golden();
 
-      expect(all('ob-entity-selector .choice').map((choice) => choice.textContent?.trim())).toEqual([
-        expect.stringContaining('Patient'),
-        expect.stringContaining('Primary cancer diagnosis'),
-        expect.stringContaining('Cancer staging'),
-        expect.stringContaining('Cancer surgical procedure'),
-      ]);
+      expect(all('ob-entity-selector .choice').map((choice) => choice.textContent?.trim())).toEqual(
+        [
+          expect.stringContaining('Patient'),
+          expect.stringContaining('Primary cancer diagnosis'),
+          expect.stringContaining('Cancer staging'),
+          expect.stringContaining('Cancer surgical procedure'),
+        ],
+      );
     });
 
     it('labels instances from canonical data', async () => {
@@ -264,9 +266,9 @@ describe('InspectorPage', () => {
       const rows = all('ob-source-pane .row');
 
       expect(rows).toHaveLength(4);
-      expect(rows.map((row) => row.querySelector('ob-evidence-marker')?.textContent?.trim())).toEqual(
-        ['Evidence A', 'Evidence B', 'Evidence C', 'Evidence D'],
-      );
+      expect(
+        rows.map((row) => row.querySelector('ob-evidence-marker')?.textContent?.trim()),
+      ).toEqual(['Evidence A', 'Evidence B', 'Evidence C', 'Evidence D']);
       expect(rows.map((row) => row.querySelector('.logical')?.textContent)).toEqual([
         'staging-group-001',
         'staging-t-001',
@@ -341,7 +343,9 @@ describe('InspectorPage', () => {
     it('never calls the stored JSON the byte-exact evidence', async () => {
       await golden();
 
-      expect(text('ob-source-pane')).toContain('byte-exact evidence is the import batch raw payload');
+      expect(text('ob-source-pane')).toContain(
+        'byte-exact evidence is the import batch raw payload',
+      );
       expect(text('ob-source-pane')).not.toContain('byte-exact resource');
     });
   });
@@ -493,11 +497,9 @@ describe('InspectorPage', () => {
     it('shows every finding for the import regardless of the selection', async () => {
       await golden();
 
-      expect(all('ob-quality-pane .finding').map((card) => card.querySelector('.check')?.textContent)).toEqual([
-        'OB-CONF-001',
-        'OB-CONF-002',
-        'OB-REF-001',
-      ]);
+      expect(
+        all('ob-quality-pane .finding').map((card) => card.querySelector('.check')?.textContent),
+      ).toEqual(['OB-CONF-001', 'OB-CONF-002', 'OB-REF-001']);
       expect(text('ob-quality-pane')).toContain('3 findings for this import · 3 Error');
     });
 

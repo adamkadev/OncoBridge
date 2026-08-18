@@ -9,7 +9,7 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 20_000 },
   use: {
-    baseURL: 'http://127.0.0.1:4200',
+    baseURL: process.env.ONCOBRIDGE_WEB_ORIGIN ?? 'http://127.0.0.1:4200',
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

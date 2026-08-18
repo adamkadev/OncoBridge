@@ -53,7 +53,9 @@ export class PaneLoading {
         <span class="swatch" aria-hidden="true"></span>
         Error
       </span>
-      <span class="ob-mono request">{{ request() }}{{ failure().status ? ' · ' + failure().status : '' }}</span>
+      <span class="ob-mono request"
+        >{{ request() }}{{ failure().status ? ' · ' + failure().status : '' }}</span
+      >
     </p>
     <p class="title">{{ failure().title }}</p>
     <p class="detail">{{ detail() }}</p>

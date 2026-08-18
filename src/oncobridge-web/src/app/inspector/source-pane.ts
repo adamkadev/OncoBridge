@@ -63,17 +63,22 @@ import { PaneEmpty, PaneError, PaneLoading } from '../shared/pane-state';
               <ob-evidence-marker [marker]="current.marker" [active]="true" />
               <span class="ob-micro">Stored resource JSON</span>
             </span>
-            <span class="ob-id">{{ current.source?.fullUrl ?? current.lineage.sourceResourceId }}</span>
+            <span class="ob-id">{{
+              current.source?.fullUrl ?? current.lineage.sourceResourceId
+            }}</span>
           </div>
 
           @if (json(); as text) {
-            <div class="json"><pre>{{ text }}</pre></div>
+            <div class="json">
+              <pre>{{ text }}</pre>
+            </div>
           } @else {
             <div class="json-absent">
               <p class="absent-title">No parsed JSON stored for this resource</p>
               <p class="absent-body">
-                The stored resource JSON is a derived, queryable representation and may be absent. The
-                received bytes remain intact in the import batch payload and its SHA-256 is unchanged.
+                The stored resource JSON is a derived, queryable representation and may be absent.
+                The received bytes remain intact in the import batch payload and its SHA-256 is
+                unchanged.
               </p>
             </div>
           }
