@@ -23,6 +23,13 @@ public enum TimelineGroupKind
     OrderNotEstablished,
 }
 
+public enum TimelineAnchorSource
+{
+    Date,
+
+    PeriodStart,
+}
+
 public enum UnsequencedReason
 {
     NoOccurrenceStated,
@@ -73,6 +80,8 @@ public sealed record TimelineEvent
     public required string Label { get; init; }
 
     public PartialDate? Anchor { get; init; }
+
+    public TimelineAnchorSource? AnchorSource { get; init; }
 
     public TemporalOccurrence? Occurrence { get; init; }
 

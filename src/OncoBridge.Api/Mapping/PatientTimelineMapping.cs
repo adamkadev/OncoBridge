@@ -38,6 +38,7 @@ internal static class PatientTimelineMapping
         EntityKind = timelineEvent.EntityKind.ToString(),
         Label = timelineEvent.Label,
         Anchor = CanonicalValueMapping.ToResponseOrNull(timelineEvent.Anchor),
+        AnchorSource = timelineEvent.AnchorSource?.ToString(),
         Occurrence = CanonicalValueMapping.ToResponseOrNull(timelineEvent.Occurrence),
         Diagnosis = timelineEvent.Diagnosis is { } diagnosis ? ToResponse(diagnosis) : null,
         Staging = timelineEvent.Staging is { } staging ? ToResponse(staging) : null,

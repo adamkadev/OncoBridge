@@ -9,6 +9,8 @@ public static class PatientTimelineProjector
 {
     private sealed record Anchored(TimelineEvent Event, PartialDate Anchor);
 
+    private sealed record Anchoring(PartialDate? Anchor, TimelineAnchorSource? Source);
+
     public static PatientTimeline Project(PatientRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
@@ -208,12 +210,15 @@ public static class PatientTimelineProjector
     {
         foreach (PrimaryCancerDiagnosis diagnosis in record.PrimaryCancerDiagnoses)
         {
+            Anchoring onset = AnchoringOf(diagnosis.Onset);
+
             yield return new TimelineEvent
             {
                 EntityId = diagnosis.Id.Value,
                 EntityKind = TimelineEntityKind.PrimaryCancerDiagnosis,
                 Label = LabelOf(diagnosis.Code),
-                Anchor = AnchorOf(diagnosis.Onset),
+                Anchor = onset.Anchor,
+                AnchorSource = onset.Source,
                 Occurrence = diagnosis.Onset,
                 Diagnosis = new TimelineDiagnosisDetail
                 {
@@ -228,12 +233,15 @@ public static class PatientTimelineProjector
             TemporalOccurrence? effective =
                 staging.Effective is { } date ? TemporalOccurrence.FromDate(date) : null;
 
+            Anchoring assessed = AnchoringOf(effective);
+
             yield return new TimelineEvent
             {
                 EntityId = staging.Id,
                 EntityKind = TimelineEntityKind.CancerStaging,
                 Label = LabelOf(staging),
-                Anchor = AnchorOf(effective),
+                Anchor = assessed.Anchor,
+                AnchorSource = assessed.Source,
                 Occurrence = effective,
                 Staging = new TimelineStagingDetail
                 {
@@ -245,23 +253,26 @@ public static class PatientTimelineProjector
 
         foreach (CancerSurgicalProcedure procedure in record.CancerSurgicalProcedures)
         {
+            Anchoring performed = AnchoringOf(procedure.Performed);
+
             yield return new TimelineEvent
             {
                 EntityId = procedure.Id,
                 EntityKind = TimelineEntityKind.CancerSurgicalProcedure,
                 Label = LabelOf(procedure.Code),
-                Anchor = AnchorOf(procedure.Performed),
+                Anchor = performed.Anchor,
+                AnchorSource = performed.Source,
                 Occurrence = procedure.Performed,
                 Procedure = new TimelineProcedureDetail { Code = procedure.Code },
             };
         }
     }
 
-    private static PartialDate? AnchorOf(TemporalOccurrence? occurrence) => occurrence switch
+    private static Anchoring AnchoringOf(TemporalOccurrence? occurrence) => occurrence switch
     {
-        { Date: { } date } => date,
-        { Period: { } period } => period.Start,
-        _ => null,
+        { Date: { } date } => new Anchoring(date, TimelineAnchorSource.Date),
+        { Period.Start: { } start } => new Anchoring(start, TimelineAnchorSource.PeriodStart),
+        _ => new Anchoring(null, null),
     };
 
     private static IReadOnlyList<StageCategory> AxisOrder(CancerStaging staging) =>

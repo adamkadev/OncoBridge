@@ -36,6 +36,8 @@ public sealed record TimelineEventResponse
 
     public PartialDateResponse? Anchor { get; init; }
 
+    public string? AnchorSource { get; init; }
+
     public TemporalOccurrenceResponse? Occurrence { get; init; }
 
     public TimelineDiagnosisDetailResponse? Diagnosis { get; init; }

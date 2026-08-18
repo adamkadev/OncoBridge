@@ -49,6 +49,13 @@ that. This is the point where the absence of period-to-date comparison becomes v
 projection resolves it by refusing to place the event rather than by inventing a comparison ADR-0005
 declined to define.
 
+**The anchor's source is stated, not rediscovered.** An anchored event carries a
+`TimelineAnchorSource` beside its anchor: `Date` when the occurrence states a date, `PeriodStart`
+when it states a period. An event with no anchor carries no source. A client cannot recover this by
+matching the anchor back to a bound, because a zero-length period states the same value at the same
+precision on both bounds and both would match — so the projection names the bound it used. There is
+no `PeriodEnd`: under this policy the end bound never anchors an event.
+
 Only anchors are ever compared, and only with `PartialDate.Compare`. The projection therefore never
 claims a relation between a whole period and anything else. A period event states its position
 through its start bound and shows both bounds as stated.

@@ -980,6 +980,12 @@
               }
             ]
           },
+          "anchorSource": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "occurrence": {
             "oneOf": [
               {

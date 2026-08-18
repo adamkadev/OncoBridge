@@ -60,6 +60,17 @@ public sealed class PatientTimelineContractTests(ApiPostgreSqlFixture fixture)
     }
 
     [Fact]
+    public async Task Every_event_names_the_occurrence_bound_its_anchor_was_taken_from()
+    {
+        JsonElement timeline = await ReadTimelineAsync();
+
+        Assert.Equal(
+            ["Date", "Date", "PeriodStart"],
+            SequencedEvents(timeline)
+                .Select(sequenced => sequenced.GetProperty("anchorSource").GetString()));
+    }
+
+    [Fact]
     public async Task The_acceptance_bundle_leaves_nothing_unsequenced()
     {
         JsonElement timeline = await ReadTimelineAsync();

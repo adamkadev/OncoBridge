@@ -8,6 +8,7 @@ import { TimelineProcedureDetailResponse } from '../models/timeline-procedure-de
 import { TimelineStagingDetailResponse } from '../models/timeline-staging-detail-response';
 export interface TimelineEventResponse {
   anchor?: (null | PartialDateResponse);
+  anchorSource?: (string | null);
   diagnosis?: (null | TimelineDiagnosisDetailResponse);
   entityId: string;
   entityKind: string;

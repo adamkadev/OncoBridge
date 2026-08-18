@@ -118,6 +118,107 @@ public sealed class TimelineAnchorTests
     }
 
     [Fact]
+    public void A_stated_date_names_the_date_as_the_source_of_its_anchor()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            diagnoses: [Diagnosis(onset: At(Day(2019, 3, 14)))]));
+
+        TimelineEvent diagnosis = Only(timeline);
+
+        Assert.Equal("2019-03-14", diagnosis.Anchor?.ToString());
+        Assert.Equal(TimelineAnchorSource.Date, diagnosis.AnchorSource);
+    }
+
+    [Fact]
+    public void A_staging_effective_date_names_the_date_as_the_source_of_its_anchor()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            stagings: [Staging(effective: Day(2019, 4, 2))]));
+
+        TimelineEvent staging = Only(timeline);
+
+        Assert.Equal(TimelineAnchorSource.Date, staging.AnchorSource);
+        Assert.Equal(TemporalOccurrenceKind.Date, staging.Occurrence?.Kind);
+    }
+
+    [Fact]
+    public void A_period_names_its_start_bound_as_the_source_of_its_anchor()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            procedures: [Procedure(performed: Between(Month(2019, 5), Day(2019, 6, 12)))]));
+
+        TimelineEvent procedure = Only(timeline);
+
+        Assert.Equal(TimelineAnchorSource.PeriodStart, procedure.AnchorSource);
+    }
+
+    [Fact]
+    public void An_open_ended_period_still_names_its_start_bound_as_the_anchor_source()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            procedures: [Procedure(performed: StartingAt(Month(2019, 8)))]));
+
+        Assert.Equal(TimelineAnchorSource.PeriodStart, Only(timeline).AnchorSource);
+    }
+
+    [Fact]
+    public void A_zero_length_period_is_anchored_by_its_start_bound_and_says_so()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            procedures: [Procedure(performed: Between(Day(2019, 5, 12), Day(2019, 5, 12)))]));
+
+        TimelineEvent procedure = Only(timeline);
+
+        Assert.Equal("2019-05-12", procedure.Anchor?.ToString());
+        Assert.Equal(TimelineAnchorSource.PeriodStart, procedure.AnchorSource);
+        Assert.NotEqual(TimelineAnchorSource.Date, procedure.AnchorSource);
+    }
+
+    [Fact]
+    public void A_zero_length_period_keeps_both_stated_bounds_and_their_precision()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            procedures: [Procedure(performed: Between(Day(2019, 5, 12), Day(2019, 5, 12)))]));
+
+        PartialPeriod? period = Only(timeline).Occurrence?.Period;
+
+        Assert.Equal("2019-05-12", period?.Start?.ToString());
+        Assert.Equal("2019-05-12", period?.End?.ToString());
+        Assert.Equal(DatePrecision.Day, period?.Start?.Precision);
+        Assert.Equal(DatePrecision.Day, period?.End?.Precision);
+    }
+
+    [Fact]
+    public void A_zero_length_period_is_sequenced_like_any_other_anchored_event()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            diagnoses: [Diagnosis(onset: At(Day(2019, 1, 1)))],
+            procedures: [Procedure(performed: Between(Day(2019, 5, 12), Day(2019, 5, 12)))]));
+
+        Assert.Equal([1, 2], timeline.Groups.Select(group => group.Sequence));
+        Assert.Equal(
+            [TimelineGroupKind.Established, TimelineGroupKind.Established],
+            timeline.Groups.Select(group => group.Kind));
+        Assert.Empty(timeline.UnsequencedEvents);
+    }
+
+    [Fact]
+    public void An_event_with_no_anchor_names_no_anchor_source_either()
+    {
+        PatientTimeline timeline = PatientTimelineProjector.Project(Record(
+            diagnoses: [Diagnosis()],
+            procedures: [Procedure(performed: EndingAt(Day(2019, 6, 12)))]));
+
+        Assert.All(
+            timeline.UnsequencedEvents,
+            unsequenced =>
+            {
+                Assert.Null(unsequenced.Event.Anchor);
+                Assert.Null(unsequenced.Event.AnchorSource);
+            });
+    }
+
+    [Fact]
     public void An_unsequenced_event_is_never_given_a_sequence_number()
     {
         PatientTimeline timeline = PatientTimelineProjector.Project(Record(
