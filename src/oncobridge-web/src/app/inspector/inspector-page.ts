@@ -3,12 +3,7 @@ import { Router } from '@angular/router';
 
 import { asNumber } from '../core/api-values';
 import { failureOf, valueOf } from '../core/async';
-import {
-  EntityInstance,
-  defaultEntityIdOf,
-  entityInstancesOf,
-  stagingOf,
-} from '../core/entities';
+import { EntityInstance, defaultEntityIdOf, entityInstancesOf, stagingOf } from '../core/entities';
 import { contributingSourcesOf, evidenceRecordsOf } from '../core/evidence';
 import { findingViewsOf, relatedCheckIdsOf } from '../core/findings';
 import { InspectorDataService } from '../core/inspector-data';
@@ -47,9 +42,8 @@ import { SourcePane } from './source-pane';
             <p class="badge-row">
               <span class="badge"><span class="swatch" aria-hidden="true"></span>Error</span>
               <span class="ob-mono request"
-                >GET /api/v1/imports/{{ importBatchId() }}{{
-                  failure.status ? ' · ' + failure.status : ''
-                }}</span
+                >GET /api/v1/imports/{{ importBatchId()
+                }}{{ failure.status ? ' · ' + failure.status : '' }}</span
               >
             </p>
             <h2>{{ failure.title }}</h2>
@@ -97,7 +91,11 @@ import { SourcePane } from './source-pane';
             />
           }
 
-          <ob-stage-flow>{{ flowNote() }}</ob-stage-flow>
+          <ob-stage-flow
+            [timelineCommands]="timelineCommands()"
+            [queryParams]="timelineQueryParams()"
+            >{{ flowNote() }}</ob-stage-flow
+          >
 
           <div class="panes">
             <ob-source-pane
@@ -300,7 +298,9 @@ export class InspectorPage {
   protected readonly findingsFailure = computed(() => failureOf(this.data.findings()));
   protected readonly provenanceFailure = computed(() => failureOf(this.data.provenance()));
 
-  protected readonly patientIds = computed<readonly string[]>(() => this.import()?.patientIds ?? []);
+  protected readonly patientIds = computed<readonly string[]>(
+    () => this.import()?.patientIds ?? [],
+  );
 
   protected readonly selectedPatientId = computed(() => {
     const ids = this.patientIds();
@@ -410,6 +410,18 @@ export class InspectorPage {
     const entity = this.selectedEntity();
 
     return entity ? `${entity.kind} ${entity.id.slice(0, 8)}…` : '';
+  });
+
+  protected readonly timelineCommands = computed(() => [
+    '/imports',
+    this.importBatchId(),
+    'timeline',
+  ]);
+
+  protected readonly timelineQueryParams = computed(() => {
+    const patientId = this.selectedPatientId();
+
+    return patientId ? { patientId } : {};
   });
 
   protected readonly flowNote = computed(() => {

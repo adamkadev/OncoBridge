@@ -6,10 +6,12 @@ import {
   ImportResponse,
   LineageResponse,
   PatientRecordResponse,
+  PatientTimelineResponse,
   getDomainProvenance,
   getImport,
   getImportFindings,
   getPatientRecord,
+  getPatientTimeline,
 } from '../api';
 import { Async, failed, idle, loaded, loading, toApiFailure } from './async';
 
@@ -21,16 +23,19 @@ export class InspectorDataService {
   private readonly findingsState = signal<Async<readonly FindingResponse[]>>(idle);
   private readonly recordState = signal<Async<PatientRecordResponse>>(idle);
   private readonly provenanceState = signal<Async<readonly LineageResponse[]>>(idle);
+  private readonly timelineState = signal<Async<PatientTimelineResponse>>(idle);
 
   private importKey: string | null = null;
   private findingsKey: string | null = null;
   private recordKey: string | null = null;
   private provenanceKey: string | null = null;
+  private timelineKey: string | null = null;
 
   readonly import = this.importState.asReadonly();
   readonly findings = this.findingsState.asReadonly();
   readonly record = this.recordState.asReadonly();
   readonly provenance = this.provenanceState.asReadonly();
+  readonly timeline = this.timelineState.asReadonly();
 
   loadImport(importBatchId: string, force = false): void {
     if (!force && this.importKey === importBatchId) {
@@ -100,6 +105,32 @@ export class InspectorDataService {
   clearRecord(): void {
     this.recordKey = null;
     this.recordState.set(idle);
+  }
+
+  loadTimeline(patientId: string, force = false): void {
+    if (!force && this.timelineKey === patientId) {
+      return;
+    }
+
+    this.timelineKey = patientId;
+    this.timelineState.set(loading);
+
+    this.api
+      .invoke(getPatientTimeline, { patientId })
+      .then((value) => this.settle(this.timelineState, this.timelineKey, patientId, loaded(value)))
+      .catch((error: unknown) =>
+        this.settle(
+          this.timelineState,
+          this.timelineKey,
+          patientId,
+          failed(toApiFailure(error, 'The patient timeline could not be loaded')),
+        ),
+      );
+  }
+
+  clearTimeline(): void {
+    this.timelineKey = null;
+    this.timelineState.set(idle);
   }
 
   loadProvenance(domainEntityId: string, force = false): void {

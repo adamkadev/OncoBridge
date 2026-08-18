@@ -8,8 +8,23 @@ describe('routes', () => {
     expect(routes[0].pathMatch).toBe('full');
   });
 
+  it('serves the timeline at /imports/:importBatchId/timeline', () => {
+    expect(routes[1].path).toBe('imports/:importBatchId/timeline');
+  });
+
   it('serves the inspector at /imports/:importBatchId', () => {
-    expect(routes[1].path).toBe('imports/:importBatchId');
+    expect(routes[2].path).toBe('imports/:importBatchId');
+  });
+
+  it('matches the timeline before the inspector so the deeper route wins', () => {
+    const timeline = routes.findIndex((route) => route.path === 'imports/:importBatchId/timeline');
+    const inspector = routes.findIndex((route) => route.path === 'imports/:importBatchId');
+
+    expect(timeline).toBeLessThan(inspector);
+  });
+
+  it('does not expose a timeline detail route of its own', () => {
+    expect(routes.some((route) => route.path?.includes('timeline/'))).toBe(false);
   });
 
   it('redirects unknown routes to the import page', () => {

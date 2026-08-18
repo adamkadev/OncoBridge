@@ -8,6 +8,11 @@ export const routes: Routes = [
     loadComponent: () => import('./import/import-page').then((m) => m.ImportPage),
   },
   {
+    path: 'imports/:importBatchId/timeline',
+    title: 'OncoBridge · Patient timeline',
+    loadComponent: () => import('./timeline/timeline-page').then((m) => m.TimelinePage),
+  },
+  {
     path: 'imports/:importBatchId',
     title: 'OncoBridge · Import inspector',
     loadComponent: () => import('./inspector/inspector-page').then((m) => m.InspectorPage),

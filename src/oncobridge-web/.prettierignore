@@ -1,0 +1,3 @@
+# ng-openapi-gen owns these files; api:check compares them byte-for-byte against a fresh
+# generation, so formatting them here would make that check fail.
+src/app/api/
