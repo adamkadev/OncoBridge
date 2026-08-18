@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Oncology;
@@ -22,7 +23,7 @@ public sealed class StagingAssociationTests
     private const string UnusableConditionCode =
         """ "code":{"text":"Breast cancer, stated only as free text"} """;
 
-    private static PrimaryCancerDiagnosisId DiagnosisIdOf(IngestedBundle ingested, string logicalId) =>
+    private static PrimaryCancerDiagnosisId DiagnosisIdOf(IngestedPayload ingested, string logicalId) =>
         new(ingested.SourceResources.Single(source => source.SourceLogicalId == logicalId).Id.Value);
 
     private static string OtherPatientEntry() =>
@@ -99,10 +100,10 @@ public sealed class StagingAssociationTests
     [Fact]
     public void A_focus_never_resolves_to_a_condition_from_another_batch()
     {
-        IngestedBundle conditionBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload conditionBatch = NormalizationFixtures.IngestEntries(
             StagingFixtures.PatientEntry(), StagingFixtures.ConditionEntry());
 
-        IngestedBundle stagingBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload stagingBatch = NormalizationFixtures.IngestEntries(
             StagingFixtures.StageGroupEntry(
                 NormalizationFixtures.Focus(NormalizationFixtures.ConditionFullUrl),
                 NormalizationFixtures.StagingValue(StagingFixtures.StageGroupValue)));
@@ -166,7 +167,7 @@ public sealed class StagingAssociationTests
     [Fact]
     public void The_staging_patient_is_the_one_the_resolved_condition_names()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestEntries(
+        IngestedPayload ingested = NormalizationFixtures.IngestEntries(
             StagingFixtures.PatientEntry(),
             StagingFixtures.ConditionEntry(),
             OtherPatientEntry(),
@@ -207,7 +208,7 @@ public sealed class StagingAssociationTests
     [Fact]
     public void One_undiagnosable_condition_does_not_stop_the_other_assessments_in_the_batch()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestEntries(
+        IngestedPayload ingested = NormalizationFixtures.IngestEntries(
             StagingFixtures.PatientEntry(),
             NormalizationFixtures.PrimaryCancerConditionEntry(
                 SecondConditionFullUrl,
@@ -290,7 +291,7 @@ public sealed class StagingAssociationTests
     [Fact]
     public void Two_primary_cancers_for_one_patient_are_staged_against_their_own_diagnoses()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestEntries(
+        IngestedPayload ingested = NormalizationFixtures.IngestEntries(
             StagingFixtures.PatientEntry(),
             StagingFixtures.ConditionEntry(),
             NormalizationFixtures.PrimaryCancerConditionEntry(

@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Temporal;
@@ -56,7 +57,7 @@ public sealed class CancerStagingNormalizationTests
     [Fact]
     public void Every_category_names_the_member_observation_it_came_from()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestTnmStagingBundle();
 
         CancerStaging staging =
             Assert.Single(NormalizationFixtures.Normalize(ingested.SourceResources).CancerStagings);

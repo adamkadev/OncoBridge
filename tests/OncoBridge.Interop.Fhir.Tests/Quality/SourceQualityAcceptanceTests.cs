@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Oncology;
@@ -11,7 +12,7 @@ namespace OncoBridge.Interop.Fhir.Tests.Quality;
 
 public sealed class SourceQualityAcceptanceTests
 {
-    private static IngestedBundle AcceptanceBundle() =>
+    private static IngestedPayload AcceptanceBundle() =>
         NormalizationFixtures.Ingest(SyntheticFixtures.Phase4Bundle("bundle-acceptance-defects"));
 
     private static (string Check, Guid Target, string Message, string? Expected, string? Actual)[]
@@ -73,7 +74,7 @@ public sealed class SourceQualityAcceptanceTests
     [Fact]
     public void Each_acceptance_finding_targets_the_source_resource_it_is_about()
     {
-        IngestedBundle ingested = AcceptanceBundle();
+        IngestedPayload ingested = AcceptanceBundle();
         SourceQualityAssessment assessment = QualityFixtures.Assess(ingested.SourceResources);
 
         Guid Source(string logicalId) =>
@@ -122,7 +123,7 @@ public sealed class SourceQualityAcceptanceTests
     [Fact]
     public void Findings_are_ordered_by_the_entry_index_of_the_resource_they_are_about()
     {
-        IngestedBundle ingested = AcceptanceBundle();
+        IngestedPayload ingested = AcceptanceBundle();
         SourceQualityAssessment assessment = QualityFixtures.Assess(ingested.SourceResources);
 
         int[] entryIndexes =

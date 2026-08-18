@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
@@ -10,14 +11,14 @@ public sealed class StagingLineageTests
 {
     private const string CancerStaging = "CancerStaging";
 
-    private static (IngestedBundle Ingested, NormalizationResult Result) NormalizeFixture()
+    private static (IngestedPayload Ingested, NormalizationResult Result) NormalizeFixture()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestTnmStagingBundle();
 
         return (ingested, NormalizationFixtures.Normalize(ingested.SourceResources));
     }
 
-    private static SourceResourceId SourceOf(IngestedBundle ingested, string logicalId) =>
+    private static SourceResourceId SourceOf(IngestedPayload ingested, string logicalId) =>
         ingested.SourceResources.Single(source => source.SourceLogicalId == logicalId).Id;
 
     private static Lineage[] StagingLineage(NormalizationResult result) =>
@@ -38,7 +39,7 @@ public sealed class StagingLineageTests
     [Fact]
     public void The_entity_level_record_names_the_stage_group_observation_as_the_root()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Lineage lineage = Assert.Single(StagingLineage(result), record => record.IsWholeEntity);
 
@@ -53,7 +54,7 @@ public sealed class StagingLineageTests
     public void Each_axis_records_the_member_observation_it_was_read_from(
         string fieldPath, string logicalId)
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Lineage lineage = Assert.Single(StagingLineage(result), record => record.FieldPath == fieldPath);
 
@@ -64,7 +65,7 @@ public sealed class StagingLineageTests
     [Fact]
     public void No_field_level_record_is_written_for_the_stage_group_method_or_effective_date()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         SourceResourceId stageGroup = SourceOf(ingested, "staging-group-001");
 

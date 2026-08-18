@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
@@ -73,19 +74,19 @@ internal static class NormalizationFixtures
 
     private static readonly DateTimeOffset ReceivedAt = new(2026, 8, 16, 9, 0, 0, TimeSpan.Zero);
 
-    internal static IngestedBundle Ingest(byte[] payload) =>
+    internal static IngestedPayload Ingest(byte[] payload) =>
         new FhirBundleIngestor().Ingest(payload, "phase3-fixture", ReceivedAt);
 
-    internal static IngestedBundle IngestEntries(params string[] entries) =>
+    internal static IngestedPayload IngestEntries(params string[] entries) =>
         Ingest(SyntheticFixtures.Utf8(Bundle(entries)));
 
-    internal static IngestedBundle IngestPrimaryCancerBundle() =>
+    internal static IngestedPayload IngestPrimaryCancerBundle() =>
         Ingest(SyntheticFixtures.PrimaryCancerBundleBytes);
 
-    internal static IngestedBundle IngestTnmStagingBundle() =>
+    internal static IngestedPayload IngestTnmStagingBundle() =>
         Ingest(SyntheticFixtures.TnmStagingBundleBytes);
 
-    internal static IngestedBundle IngestSurgicalProcedureBundle() =>
+    internal static IngestedPayload IngestSurgicalProcedureBundle() =>
         Ingest(SyntheticFixtures.SurgicalProcedureBundleBytes);
 
     internal static NormalizationResult Normalize(IReadOnlyList<SourceResource> sourceResources) =>

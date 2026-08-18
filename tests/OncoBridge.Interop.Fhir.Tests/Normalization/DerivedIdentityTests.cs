@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
@@ -8,13 +9,13 @@ namespace OncoBridge.Interop.Fhir.Tests.Normalization;
 
 public sealed class DerivedIdentityTests
 {
-    private static SourceResource SourceOfType(IngestedBundle ingested, string resourceType) =>
+    private static SourceResource SourceOfType(IngestedPayload ingested, string resourceType) =>
         ingested.SourceResources.Single(source => source.ResourceType == resourceType);
 
     [Fact]
     public void Normalizing_the_same_source_resources_twice_yields_the_same_patient_id()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
         NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
@@ -25,7 +26,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void Normalizing_the_same_source_resources_twice_yields_the_same_diagnosis_id()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
         NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
@@ -37,7 +38,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void A_patient_id_derives_from_the_resolved_patient_source_resource()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         NormalizationResult result = NormalizationFixtures.Normalize(ingested.SourceResources);
 
@@ -47,7 +48,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void A_diagnosis_id_derives_from_its_condition_source_resource()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         NormalizationResult result = NormalizationFixtures.Normalize(ingested.SourceResources);
 
@@ -59,7 +60,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void Lineage_names_the_same_derived_entity_ids_on_every_run()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
         NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
@@ -77,7 +78,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void Two_diagnoses_for_one_patient_keep_one_derived_patient_id_and_distinct_diagnosis_ids()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestEntries(
+        IngestedPayload ingested = NormalizationFixtures.IngestEntries(
             NormalizationFixtures.PatientEntry(NormalizationFixtures.PatientFullUrl, "patient-001"),
             NormalizationFixtures.PrimaryCancerConditionEntry(
                 "urn:uuid:condition-a",
@@ -114,7 +115,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void Normalizing_the_same_source_resources_twice_yields_the_same_staging_id()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestTnmStagingBundle();
 
         NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
         NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
@@ -126,7 +127,7 @@ public sealed class DerivedIdentityTests
     [Fact]
     public void A_staging_id_derives_from_its_stage_group_source_resource()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestTnmStagingBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestTnmStagingBundle();
 
         NormalizationResult result = NormalizationFixtures.Normalize(ingested.SourceResources);
 

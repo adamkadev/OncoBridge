@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
 
@@ -9,13 +10,13 @@ public sealed class FhirBundleIngestorTests
 
     private readonly FhirBundleIngestor _ingestor = new();
 
-    private IngestedBundle IngestMinimalBundle() =>
+    private IngestedPayload IngestMinimalBundle() =>
         _ingestor.Ingest(SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt, "bundle-minimal.json");
 
     [Fact]
     public void The_batch_retains_the_exact_payload_and_its_digest()
     {
-        IngestedBundle ingested = IngestMinimalBundle();
+        IngestedPayload ingested = IngestMinimalBundle();
 
         Assert.Equal(SyntheticFixtures.MinimalBundleBytes, ingested.Batch.RawPayload.ToArray());
         Assert.Equal(
@@ -27,7 +28,7 @@ public sealed class FhirBundleIngestorTests
     [Fact]
     public void The_batch_records_the_bundle_type_and_entry_count()
     {
-        IngestedBundle ingested = IngestMinimalBundle();
+        IngestedPayload ingested = IngestMinimalBundle();
 
         Assert.Equal("collection", ingested.Batch.BundleType);
         Assert.Equal(4, ingested.Batch.EntryCount);
@@ -37,7 +38,7 @@ public sealed class FhirBundleIngestorTests
     [Fact]
     public void Every_source_resource_belongs_to_the_batch_and_keeps_its_entry_index()
     {
-        IngestedBundle ingested = IngestMinimalBundle();
+        IngestedPayload ingested = IngestMinimalBundle();
 
         Assert.All(ingested.SourceResources, resource => Assert.Equal(ingested.Batch.Id, resource.BatchId));
         Assert.Equal([0, 1, 2, 3], ingested.SourceResources.Select(resource => resource.EntryIndex));
@@ -47,7 +48,7 @@ public sealed class FhirBundleIngestorTests
     public void Each_source_resource_digest_is_reproducible_from_the_payload_alone()
     {
         ReadOnlySpan<byte> payload = SyntheticFixtures.MinimalBundleBytes;
-        IngestedBundle ingested = IngestMinimalBundle();
+        IngestedPayload ingested = IngestMinimalBundle();
 
         foreach (SourceResource resource in ingested.SourceResources)
         {
@@ -62,8 +63,8 @@ public sealed class FhirBundleIngestorTests
     [Fact]
     public void Ingesting_the_same_payload_twice_produces_two_distinct_batches()
     {
-        IngestedBundle first = IngestMinimalBundle();
-        IngestedBundle second = IngestMinimalBundle();
+        IngestedPayload first = IngestMinimalBundle();
+        IngestedPayload second = IngestMinimalBundle();
 
         Assert.NotEqual(first.Batch.Id, second.Batch.Id);
         Assert.Equal(first.Batch.ContentHash, second.Batch.ContentHash);

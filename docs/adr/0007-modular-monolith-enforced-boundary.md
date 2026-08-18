@@ -22,7 +22,7 @@ OncoBridge.Domain          zero dependencies
 OncoBridge.Application     -> Domain
 OncoBridge.Interop.Fhir    -> Domain, Application  (sole owner of Hl7.Fhir.*, since P2)
 OncoBridge.Infrastructure  -> Domain, Application  (sole owner of EF Core / Npgsql)
-OncoBridge.Api             -> Application, Infrastructure
+OncoBridge.Api             -> Application, Infrastructure, Interop.Fhir  (host, since P5)
 ```
 
 **Why both adapters point at `Application` (revised in P3D).** Through P3C, `Application` was empty and
@@ -49,6 +49,37 @@ on the abstraction the application layer defines, and nothing in `Application` k
 Core exist. The forbidden directions are unchanged and still asserted:
 `Application -> Interop.Fhir`, `Application -> Infrastructure`, `Interop.Fhir -> Infrastructure`, and
 `Infrastructure -> Interop.Fhir`.
+
+**Why the API points at both adapters (revised in P5).** Through P4 `OncoBridge.Api` was an empty class
+library referencing `Application` and `Infrastructure`. P5 turns it into the real executable host, and a
+composition root has one job the layers below cannot do for it: name the concrete adapters that satisfy
+the application's ports. Registering `FhirBundleIngestor`, `FhirNormalizer` and
+`FhirSourceQualityEvaluator` therefore requires `Api -> Interop.Fhir`, exactly as registering
+`ImportBatchStore`, `NormalizationStore`, `QualityStore` and `OncoBridgeReadStore` requires
+`Api -> Infrastructure`.
+
+This is the one legitimate place where the two adapters meet. It replaces the P2-era arrangement in
+which `OncoBridge.Infrastructure.Tests` was the only such place, and it does not weaken any forbidden
+direction: the adapters still cannot see each other, and `Application` still cannot see either.
+
+P5 adds four ports, owned by the use cases that need them:
+
+| Port | Owned by | Implemented by |
+|---|---|---|
+| `IImportPayloadIngestor` | `Application` | `Interop.Fhir.FhirBundleIngestor` |
+| `IImportBatchWriter` | `Application` | `Infrastructure.ImportBatchStore` |
+| `IOncoBridgeReadStore` | `Application` | `Infrastructure.OncoBridgeReadStore` |
+| `ISourceQualityEvaluator` | `Application` | `Interop.Fhir.FhirSourceQualityEvaluator` |
+
+`IngestedBundle` moved from `Interop.Fhir` to `Application` as `IngestedPayload` for the same reason
+`NormalizationResult` moved in P3D: once a use case returns it, the FHIR adapter must not own it. It
+held only `Domain` types before the move and still does.
+
+The risk this arrow carries is not a reference cycle but a temptation: an executable host that knows
+every concrete type is the easiest place to start writing business logic. `OncoBridge.Api` therefore
+holds a composition root, endpoint mapping, its own DTOs and the mapping between those DTOs and
+`Application`/`Domain` types — and nothing else. Every decision it appears to make about oncology data
+is made in `Application` or `Domain` and merely wired here.
 
 **Projects deliberately not created:**
 
@@ -77,13 +108,15 @@ reference matrix, using two complementary techniques because either alone has a 
 | `OncoBridge.Application` | `Hl7.Fhir`, EF Core, Npgsql — and any project other than `Domain` |
 | `OncoBridge.Interop.Fhir` | EF Core, Npgsql, and `OncoBridge.Infrastructure` |
 | `OncoBridge.Infrastructure` | `Hl7.Fhir`, and `OncoBridge.Interop.Fhir` |
-| `OncoBridge.Api` | ASP.NET Core (until P5) |
+| `OncoBridge.Api` | `Hl7.Fhir`, EF Core, Npgsql — the sole permitted web project, and the only one |
 
 `Application_depends_on_the_domain_alone` asserts the second row as an exact set rather than a
 blocklist, because that is the row a future phase is most likely to erode one reference at a time.
 
-Plus two exclusivity rules: only `Interop.Fhir` may reference `Hl7.Fhir.*`, and only
-`Infrastructure` may reference EF Core or Npgsql.
+Plus three exclusivity rules: only `Interop.Fhir` may reference `Hl7.Fhir.*`, only `Infrastructure`
+may reference EF Core or Npgsql, and only `OncoBridge.Api` may reference ASP.NET Core or use
+`Microsoft.NET.Sdk.Web`. The API consumes EF Core and the FHIR SDK transitively through its project
+references, which is what a composition root is for; it declares neither package itself.
 
 Reading the project files catches a forbidden reference the moment it is *declared* — necessary
 because the compiler omits unused references from assembly metadata, so a declared-but-unused
@@ -101,13 +134,16 @@ that guarantee. `disable` was considered and rejected as needlessly brittle for 
 
 ## Consequences
 
-- `OncoBridge.Api` is a plain class library, not `Microsoft.NET.Sdk.Web`. The Web SDK would
-  implicitly framework-reference ASP.NET Core, contradicting the phase gate. It converts in P5.
+- `OncoBridge.Api` became `Microsoft.NET.Sdk.Web` in P5, as this ADR anticipated. It was a plain class
+  library through P4 so that the Phase 1 gate ("no API implementation has started") was executably
+  true rather than merely claimed.
 - Phase-scope tests are written to be **deleted** by the phase that invalidates them; their failure
   is the signal that a phase has begun, and removing one is a deliberate recorded act. P2 retired
   `OncoBridge.Interop.Fhir.Tests/Phase1ScopeTests` and the
-  `Phase1_has_no_persistence_or_FHIR_packages_anywhere` assertion, exactly as designed.
-  `OncoBridge.Api.Tests/Phase1ScopeTests` remains and retires in P5.
+  `Phase1_has_no_persistence_or_FHIR_packages_anywhere` assertion, exactly as designed. P5 retired
+  `OncoBridge.Api.Tests/Phase1ScopeTests` and `Api_has_not_started_and_references_no_web_packages`,
+  replacing them with the positive assertions that the API is the composition root and the only web
+  project.
 - EF Core is pinned explicitly in `Infrastructure` rather than taken transitively. The Npgsql
   provider depends on an older EF Core patch and `Microsoft.EntityFrameworkCore.Design` is
   `PrivateAssets=all`, so without an explicit pin the API project resolved a different EF Core than

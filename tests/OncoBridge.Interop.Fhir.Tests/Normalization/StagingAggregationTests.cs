@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
@@ -89,10 +90,10 @@ public sealed class StagingAggregationTests
     [Fact]
     public void A_member_never_resolves_to_an_observation_from_another_batch()
     {
-        IngestedBundle memberBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload memberBatch = NormalizationFixtures.IngestEntries(
             StagingFixtures.PrimaryTumourEntry());
 
-        IngestedBundle stagingBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload stagingBatch = NormalizationFixtures.IngestEntries(
             StagingFixtures.PatientEntry(),
             StagingFixtures.ConditionEntry(),
             StagingFixtures.LinkedStageGroupEntry(

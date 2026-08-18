@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Infrastructure.Persistence;
@@ -17,7 +18,7 @@ public sealed class IngestionFailureTests(PostgreSqlFixture postgres)
         await using OncoBridgeDbContext context = await postgres.CreateMigratedContextAsync();
         ImportBatchStore store = new(context);
 
-        IngestedBundle ingested = new FhirBundleIngestor()
+        IngestedPayload ingested = new FhirBundleIngestor()
             .Ingest(SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt);
 
         SourceResource[] conflicting =
@@ -54,9 +55,9 @@ public sealed class IngestionFailureTests(PostgreSqlFixture postgres)
         ImportBatchStore store = new(context);
         FhirBundleIngestor ingestor = new();
 
-        IngestedBundle original = ingestor.Ingest(
+        IngestedPayload original = ingestor.Ingest(
             SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt);
-        IngestedBundle reserialised = ingestor.Ingest(
+        IngestedPayload reserialised = ingestor.Ingest(
             SyntheticFixtures.MinimalBundleReserialisedCompactly(), "phase2-fixture", ReceivedAt);
 
         await store.SaveAsync(original.Batch, original.SourceResources);
@@ -78,9 +79,9 @@ public sealed class IngestionFailureTests(PostgreSqlFixture postgres)
         ImportBatchStore store = new(context);
         FhirBundleIngestor ingestor = new();
 
-        IngestedBundle first = ingestor.Ingest(
+        IngestedPayload first = ingestor.Ingest(
             SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt);
-        IngestedBundle second = ingestor.Ingest(
+        IngestedPayload second = ingestor.Ingest(
             SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt);
 
         await store.SaveAsync(first.Batch, first.SourceResources);
@@ -115,7 +116,7 @@ public sealed class IngestionFailureTests(PostgreSqlFixture postgres)
               {"resource":{"resourceType":"NotARealResourceType","id":"bad-1"}}]}
             """);
 
-        IngestedBundle ingested = new FhirBundleIngestor().Ingest(payload, "phase2-fixture", ReceivedAt);
+        IngestedPayload ingested = new FhirBundleIngestor().Ingest(payload, "phase2-fixture", ReceivedAt);
         await store.SaveAsync(ingested.Batch, ingested.SourceResources);
 
         SourceResource reloaded =

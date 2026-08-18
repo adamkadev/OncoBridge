@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
 
 namespace OncoBridge.Infrastructure.Persistence;
 
-public sealed class ImportBatchStore(OncoBridgeDbContext context)
+public sealed class ImportBatchStore(OncoBridgeDbContext context) : IImportBatchWriter
 {
     public async Task SaveAsync(
         ImportBatch batch,

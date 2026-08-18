@@ -1,15 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <!--
-    Deliberately a plain class library in Phase 1, NOT Microsoft.NET.Sdk.Web.
-    Switching to the Web SDK would implicitly framework-reference ASP.NET Core,
-    which contradicts Phase 1 gate item 9 ("no API implementation has started").
-    It becomes a Web SDK project in P5.
-  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../OncoBridge.Application/OncoBridge.Application.csproj" />
     <ProjectReference Include="../OncoBridge.Infrastructure/OncoBridge.Infrastructure.csproj" />
+    <ProjectReference Include="../OncoBridge.Interop.Fhir/OncoBridge.Interop.Fhir.csproj" />
   </ItemGroup>
 
 </Project>

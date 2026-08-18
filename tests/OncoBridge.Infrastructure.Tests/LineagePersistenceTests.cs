@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ public sealed class LineagePersistenceTests(PostgreSqlFixture postgres)
     {
         OncoBridgeDbContext context = await postgres.CreateMigratedContextAsync();
 
-        IngestedBundle ingested = new FhirBundleIngestor()
+        IngestedPayload ingested = new FhirBundleIngestor()
             .Ingest(SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt);
 
         await new ImportBatchStore(context).SaveAsync(ingested.Batch, ingested.SourceResources);

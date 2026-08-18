@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Identifiers;
@@ -29,7 +30,7 @@ internal sealed class NormalizationScenario(OncoBridgeDbContext context, FixedTi
 
     internal async Task<ImportBatchId> IngestAsync(byte[] payload, string label)
     {
-        IngestedBundle ingested = new FhirBundleIngestor().Ingest(payload, label, ReceivedAt);
+        IngestedPayload ingested = new FhirBundleIngestor().Ingest(payload, label, ReceivedAt);
 
         await new ImportBatchStore(context).SaveAsync(ingested.Batch, ingested.SourceResources);
         context.ChangeTracker.Clear();

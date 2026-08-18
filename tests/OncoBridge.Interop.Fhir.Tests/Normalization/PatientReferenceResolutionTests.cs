@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
@@ -61,10 +62,10 @@ public sealed class PatientReferenceResolutionTests
     [Fact]
     public void A_reference_never_resolves_to_a_patient_from_another_batch()
     {
-        IngestedBundle patientBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload patientBatch = NormalizationFixtures.IngestEntries(
             NormalizationFixtures.PatientEntry(NormalizationFixtures.PatientFullUrl, "patient-001"));
 
-        IngestedBundle conditionBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload conditionBatch = NormalizationFixtures.IngestEntries(
             NormalizationFixtures.PrimaryCancerConditionEntry(
                 NormalizationFixtures.ConditionFullUrl,
                 "condition-001",

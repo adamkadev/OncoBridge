@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
@@ -9,20 +10,20 @@ public sealed class CancerSurgicalProcedureLineageTests
 {
     private const string CancerSurgicalProcedure = "CancerSurgicalProcedure";
 
-    private static (IngestedBundle Ingested, NormalizationResult Result) NormalizeFixture()
+    private static (IngestedPayload Ingested, NormalizationResult Result) NormalizeFixture()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestSurgicalProcedureBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestSurgicalProcedureBundle();
 
         return (ingested, NormalizationFixtures.Normalize(ingested.SourceResources));
     }
 
-    private static SourceResource ProcedureSource(IngestedBundle ingested) =>
+    private static SourceResource ProcedureSource(IngestedPayload ingested) =>
         ingested.SourceResources.Single(source => source.ResourceType == "Procedure");
 
     [Fact]
     public void A_procedure_id_derives_from_its_procedure_source_resource()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Assert.Equal(
             ProcedureSource(ingested).Id.Value,
@@ -32,7 +33,7 @@ public sealed class CancerSurgicalProcedureLineageTests
     [Fact]
     public void Normalizing_the_same_source_resources_twice_yields_the_same_procedure_id()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestSurgicalProcedureBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestSurgicalProcedureBundle();
 
         NormalizationResult first = NormalizationFixtures.Normalize(ingested.SourceResources);
         NormalizationResult second = NormalizationFixtures.Normalize(ingested.SourceResources);
@@ -54,7 +55,7 @@ public sealed class CancerSurgicalProcedureLineageTests
     [Fact]
     public void A_normalized_procedure_produces_exactly_one_entity_level_lineage_record()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Lineage lineage = Assert.Single(
             result.Lineage, record => record.DomainEntityType == CancerSurgicalProcedure);

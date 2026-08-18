@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using OncoBridge.Domain.Provenance;
@@ -11,14 +12,14 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
 {
     private static readonly DateTimeOffset ReceivedAt = new(2026, 8, 15, 9, 30, 0, TimeSpan.FromHours(2));
 
-    private static IngestedBundle IngestFixture() =>
+    private static IngestedPayload IngestFixture() =>
         new FhirBundleIngestor().Ingest(
             SyntheticFixtures.MinimalBundleBytes, "phase2-fixture", ReceivedAt, "bundle-minimal.json");
 
-    private async Task<(OncoBridgeDbContext Context, IngestedBundle Ingested)> PersistFixtureAsync()
+    private async Task<(OncoBridgeDbContext Context, IngestedPayload Ingested)> PersistFixtureAsync()
     {
         OncoBridgeDbContext context = await postgres.CreateMigratedContextAsync();
-        IngestedBundle ingested = IngestFixture();
+        IngestedPayload ingested = IngestFixture();
 
         await new ImportBatchStore(context).SaveAsync(ingested.Batch, ingested.SourceResources);
 
@@ -37,7 +38,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task The_reloaded_raw_payload_is_byte_for_byte_identical_to_the_fixture()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         ImportBatch? reloaded = await new ImportBatchStore(context).FindBatchAsync(ingested.Batch.Id);
@@ -49,7 +50,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task The_reloaded_digest_equals_the_digest_of_the_fixture_bytes()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         ImportBatch reloaded = (await new ImportBatchStore(context).FindBatchAsync(ingested.Batch.Id))!;
@@ -61,7 +62,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task The_reloaded_batch_records_the_bundle_type_entry_count_and_receipt_instant()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         ImportBatch reloaded = (await new ImportBatchStore(context).FindBatchAsync(ingested.Batch.Id))!;
@@ -76,7 +77,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task One_source_resource_is_persisted_per_bundle_entry_in_source_order()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         IReadOnlyList<SourceResource> reloaded =
@@ -96,7 +97,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task Reloaded_resource_json_is_semantically_equivalent_to_the_input()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         IReadOnlyList<SourceResource> reloaded =
@@ -112,7 +113,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task Reloaded_resource_json_is_equivalent_but_not_byte_identical()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         SourceResource condition =
@@ -131,7 +132,7 @@ public sealed class Phase2IngestionIntegrationTests(PostgreSqlFixture postgres)
     [Fact]
     public async Task The_resource_digest_still_matches_the_original_payload_slice_after_reload()
     {
-        (OncoBridgeDbContext context, IngestedBundle ingested) = await PersistFixtureAsync();
+        (OncoBridgeDbContext context, IngestedPayload ingested) = await PersistFixtureAsync();
         await using OncoBridgeDbContext _context = context;
 
         ImportBatch batch = (await new ImportBatchStore(context).FindBatchAsync(ingested.Batch.Id))!;

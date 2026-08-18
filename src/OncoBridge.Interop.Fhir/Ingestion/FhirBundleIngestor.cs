@@ -1,19 +1,18 @@
 using System.Text;
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
 
 namespace OncoBridge.Interop.Fhir.Ingestion;
 
-public sealed record IngestedBundle(ImportBatch Batch, IReadOnlyList<SourceResource> SourceResources);
-
-public sealed class FhirBundleIngestor
+public sealed class FhirBundleIngestor : IImportPayloadIngestor
 {
     private readonly FhirBundleExtractor _extractor;
 
     public FhirBundleIngestor(FhirBundleExtractor? extractor = null) =>
         _extractor = extractor ?? new FhirBundleExtractor();
 
-    public IngestedBundle Ingest(
+    public IngestedPayload Ingest(
         ReadOnlyMemory<byte> payload,
         string sourceSystemLabel,
         DateTimeOffset receivedAt,
@@ -34,7 +33,7 @@ public sealed class FhirBundleIngestor
         SourceResource[] sourceResources =
             [.. extracted.Entries.Select(entry => ToSourceResource(entry, batchId))];
 
-        return new IngestedBundle(batch, sourceResources);
+        return new IngestedPayload(batch, sourceResources);
     }
 
     private static SourceResource ToSourceResource(ExtractedEntry entry, ImportBatchId batchId) => new(

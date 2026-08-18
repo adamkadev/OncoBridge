@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Domain.Quality;
@@ -54,9 +55,9 @@ public sealed class ReferentialQualityTests
     [Fact]
     public void A_reference_never_resolves_to_a_resource_from_another_batch()
     {
-        IngestedBundle patientBatch =
+        IngestedPayload patientBatch =
             NormalizationFixtures.IngestEntries(QualityFixtures.PatientEntry());
-        IngestedBundle conditionBatch =
+        IngestedPayload conditionBatch =
             NormalizationFixtures.IngestEntries(QualityFixtures.PrimaryCancerCondition());
 
         Assert.NotEqual(patientBatch.Batch.Id, conditionBatch.Batch.Id);
@@ -122,7 +123,7 @@ public sealed class ReferentialQualityTests
     [Fact]
     public void A_member_resolving_to_a_different_patient_is_reported_against_the_stage_group()
     {
-        IngestedBundle ingested = NormalizationFixtures.Ingest(
+        IngestedPayload ingested = NormalizationFixtures.Ingest(
             SyntheticFixtures.Phase4Bundle("bundle-staging-subject-mismatch"));
 
         Finding finding = Assert.Single(

@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Interop.Fhir.Ingestion;
@@ -7,20 +8,20 @@ namespace OncoBridge.Interop.Fhir.Tests.Normalization;
 
 public sealed class NormalizationLineageTests
 {
-    private static (IngestedBundle Ingested, NormalizationResult Result) NormalizeFixture()
+    private static (IngestedPayload Ingested, NormalizationResult Result) NormalizeFixture()
     {
-        IngestedBundle ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
+        IngestedPayload ingested = NormalizationFixtures.IngestPrimaryCancerBundle();
 
         return (ingested, NormalizationFixtures.Normalize(ingested.SourceResources));
     }
 
-    private static SourceResource SourceOfType(IngestedBundle ingested, string resourceType) =>
+    private static SourceResource SourceOfType(IngestedPayload ingested, string resourceType) =>
         ingested.SourceResources.Single(source => source.ResourceType == resourceType);
 
     [Fact]
     public void A_normalized_patient_produces_exactly_one_entity_level_lineage_record()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Lineage lineage = Assert.Single(result.Lineage, record => record.DomainEntityType == "Patient");
 
@@ -32,7 +33,7 @@ public sealed class NormalizationLineageTests
     [Fact]
     public void A_normalized_diagnosis_produces_exactly_one_entity_level_lineage_record()
     {
-        (IngestedBundle ingested, NormalizationResult result) = NormalizeFixture();
+        (IngestedPayload ingested, NormalizationResult result) = NormalizeFixture();
 
         Lineage lineage = Assert.Single(
             result.Lineage, record => record.DomainEntityType == "PrimaryCancerDiagnosis");

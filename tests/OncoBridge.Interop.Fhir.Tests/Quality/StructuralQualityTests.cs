@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Identifiers;
 using OncoBridge.Domain.Provenance;
@@ -9,7 +10,7 @@ namespace OncoBridge.Interop.Fhir.Tests.Quality;
 
 public sealed class StructuralQualityTests
 {
-    private static IngestedBundle MalformedBundle() =>
+    private static IngestedPayload MalformedBundle() =>
         NormalizationFixtures.Ingest(SyntheticFixtures.Phase4Bundle("bundle-structural-malformed"));
 
     [Fact]
@@ -29,7 +30,7 @@ public sealed class StructuralQualityTests
     [Fact]
     public void The_structural_finding_targets_the_source_resource_that_could_not_be_parsed()
     {
-        IngestedBundle ingested = MalformedBundle();
+        IngestedPayload ingested = MalformedBundle();
 
         Finding finding = Assert.Single(QualityFixtures.FindingsFor(
             QualityFixtures.Assess(ingested.SourceResources), V1CheckIds.UnparseableEntry));

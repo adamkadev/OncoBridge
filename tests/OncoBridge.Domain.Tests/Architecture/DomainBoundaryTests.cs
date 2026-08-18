@@ -16,9 +16,9 @@ public sealed class DomainBoundaryTests
     public static TheoryData<string, string[]> ForbiddenProductionReferences => new()
     {
         { "OncoBridge.Domain", [Fhir, EfCore, Npgsql, AspNetCore] },
-        { "OncoBridge.Application", [Fhir, EfCore, Npgsql] },
-        { "OncoBridge.Interop.Fhir", [EfCore, Npgsql] },
-        { "OncoBridge.Infrastructure", [Fhir] },
+        { "OncoBridge.Application", [Fhir, EfCore, Npgsql, AspNetCore] },
+        { "OncoBridge.Interop.Fhir", [EfCore, Npgsql, AspNetCore] },
+        { "OncoBridge.Infrastructure", [Fhir, AspNetCore] },
     };
 
     [Theory]
@@ -148,17 +148,39 @@ public sealed class DomainBoundaryTests
     ];
 
     [Fact]
-    public void Api_has_not_started_and_references_no_web_packages()
+    public void The_Api_composes_the_application_and_both_adapters() =>
+        Assert.Equal(
+            ["OncoBridge.Application", "OncoBridge.Infrastructure", "OncoBridge.Interop.Fhir"],
+            ProjectReferencesOf("OncoBridge.Api"));
+
+    [Fact]
+    public void The_Api_is_the_only_production_project_referencing_ASP_NET_Core()
     {
         string[] offenders =
         [
-            .. PackageReferencesOf("OncoBridge.Api").Where(name => StartsWithAny(name, [AspNetCore])),
+            .. ProductionProjectNames()
+                .Where(project => project != "OncoBridge.Api")
+                .Where(project => PackageReferencesOf(project).Any(name => StartsWithAny(name, [AspNetCore]))),
         ];
 
         Assert.True(
             offenders.Length == 0,
-            $"OncoBridge.Api holds no implementation until P5, but declares: {string.Join(", ", offenders)}.");
+            $"Only OncoBridge.Api may reference {AspNetCore}.*, but so do: {string.Join(", ", offenders)}.");
     }
+
+    [Fact]
+    public void The_Api_is_the_only_production_project_using_the_web_SDK()
+    {
+        string[] webProjects =
+        [
+            .. ProductionProjectNames().Where(project => SdkOf(project) == "Microsoft.NET.Sdk.Web"),
+        ];
+
+        Assert.Equal(["OncoBridge.Api"], webProjects);
+    }
+
+    private static string SdkOf(string project) =>
+        LoadProject(project).Root?.Attribute("Sdk")?.Value ?? "(none)";
 
     private static bool StartsWithAny(string name, IEnumerable<string> prefixes) =>
         prefixes.Any(prefix => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));

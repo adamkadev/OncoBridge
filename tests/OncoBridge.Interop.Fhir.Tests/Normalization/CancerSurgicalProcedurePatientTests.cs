@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Normalization;
 using OncoBridge.Domain.Oncology;
 using OncoBridge.Domain.Provenance;
@@ -58,10 +59,10 @@ public sealed class CancerSurgicalProcedurePatientTests
     [Fact]
     public void A_subject_never_resolves_to_a_patient_from_another_batch()
     {
-        IngestedBundle patientBatch =
+        IngestedPayload patientBatch =
             NormalizationFixtures.IngestEntries(ProcedureFixtures.PatientEntry());
 
-        IngestedBundle procedureBatch = NormalizationFixtures.IngestEntries(
+        IngestedPayload procedureBatch = NormalizationFixtures.IngestEntries(
             ProcedureFixtures.SurgicalProcedureEntry(NormalizationFixtures.LumpectomyCode));
 
         Assert.NotEqual(patientBatch.Batch.Id, procedureBatch.Batch.Id);

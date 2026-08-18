@@ -1,3 +1,4 @@
+using OncoBridge.Application.Imports;
 using OncoBridge.Application.Quality;
 using OncoBridge.Domain.Provenance;
 using OncoBridge.Domain.Quality;
@@ -89,7 +90,7 @@ public sealed class ConformanceQualityTests
     [Fact]
     public void The_category_finding_targets_the_condition_source_resource()
     {
-        IngestedBundle ingested = NormalizationFixtures.Ingest(
+        IngestedPayload ingested = NormalizationFixtures.Ingest(
             SyntheticFixtures.Phase4Bundle("bundle-primary-cancer-missing-category"));
 
         Finding finding = Assert.Single(
@@ -134,7 +135,7 @@ public sealed class ConformanceQualityTests
     [Fact]
     public void The_method_finding_targets_the_stage_group_source_resource()
     {
-        IngestedBundle ingested = NormalizationFixtures.Ingest(
+        IngestedPayload ingested = NormalizationFixtures.Ingest(
             SyntheticFixtures.Phase4Bundle("bundle-stage-group-missing-method"));
 
         Finding finding = Assert.Single(
