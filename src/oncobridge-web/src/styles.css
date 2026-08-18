@@ -1,0 +1,233 @@
+:root {
+  --ob-canvas: #f4f6f7;
+  --ob-surface: #ffffff;
+  --ob-surface-2: #f8fafb;
+  --ob-surface-3: #eef1f3;
+  --ob-code-surface: #fcfdfd;
+  --ob-border: #ccd2d6;
+  --ob-border-2: #d5dcdf;
+  --ob-rule: #e3e8ea;
+  --ob-rule-soft: #eef1f3;
+  --ob-ink: #14181b;
+  --ob-ink-2: #3d474d;
+  --ob-code-ink: #252c31;
+  --ob-muted: #6b757b;
+  --ob-faint: #97a1a7;
+  --ob-absent: #8a949a;
+  --ob-accent: oklch(0.48 0.08 232);
+  --ob-accent-ink: oklch(0.42 0.09 232);
+  --ob-accent-wash: oklch(0.975 0.012 232);
+  --ob-accent-wash-2: oklch(0.985 0.006 232);
+  --ob-marker-resting: #e8edef;
+  --ob-error: oklch(0.52 0.16 27);
+  --ob-error-ink: oklch(0.44 0.15 27);
+  --ob-error-wash: oklch(0.965 0.02 27);
+  --ob-warning: oklch(0.5 0.11 75);
+  --ob-warning-ink: oklch(0.4 0.11 75);
+  --ob-warning-wash: oklch(0.97 0.03 75);
+  --ob-info: oklch(0.5 0.05 232);
+  --ob-info-ink: oklch(0.4 0.05 232);
+  --ob-info-wash: oklch(0.97 0.012 232);
+
+  --ob-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --ob-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ob-canvas);
+  color: var(--ob-ink);
+  font-family: var(--ob-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ob-accent-ink);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklab, var(--ob-accent-ink) 35%, transparent);
+}
+
+a:hover {
+  border-bottom-color: var(--ob-accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ob-accent);
+  outline-offset: 2px;
+}
+
+pre {
+  margin: 0;
+}
+
+.ob-mono {
+  font-family: var(--ob-mono);
+}
+
+.ob-micro {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ob-faint);
+}
+
+.ob-pane-label {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 650;
+}
+
+.ob-pane-number {
+  font-family: var(--ob-mono);
+  font-size: 10.5px;
+  color: var(--ob-faint);
+  letter-spacing: 0;
+}
+
+.ob-meta {
+  font-size: 10.5px;
+  color: var(--ob-muted);
+}
+
+.ob-footnote {
+  padding: 7px 12px;
+  border-top: 1px solid var(--ob-rule);
+  background: var(--ob-surface-2);
+  font-size: 10.5px;
+  color: var(--ob-muted);
+  line-height: 1.5;
+}
+
+.ob-chip {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ob-ink-2);
+  background: var(--ob-surface-3);
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.ob-chip-outline {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ob-muted);
+  border: 1px solid var(--ob-border-2);
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.ob-chip-dashed {
+  font-size: 10.5px;
+  color: var(--ob-ink-2);
+  border: 1px dashed var(--ob-border);
+  padding: 1px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.ob-absent-text {
+  color: var(--ob-absent);
+  font-style: italic;
+}
+
+.ob-id {
+  font-family: var(--ob-mono);
+  font-size: 10.5px;
+  color: var(--ob-faint);
+}
+
+.ob-button {
+  font-family: var(--ob-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ob-accent);
+  border: 1px solid var(--ob-accent);
+  padding: 10px 18px;
+  border-radius: 3px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+.ob-button:disabled {
+  color: var(--ob-faint);
+  background: var(--ob-surface-3);
+  border-color: var(--ob-rule);
+  cursor: not-allowed;
+}
+
+.ob-button-quiet {
+  font-family: var(--ob-sans);
+  font-size: 12.5px;
+  color: var(--ob-ink-2);
+  background: var(--ob-surface);
+  border: 1px solid var(--ob-border-2);
+  padding: 8px 14px;
+  border-radius: 3px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.ob-input {
+  font-family: var(--ob-mono);
+  font-size: 13px;
+  color: var(--ob-ink);
+  background: var(--ob-surface);
+  border: 1px solid var(--ob-border-2);
+  border-radius: 3px;
+  padding: 9px 12px;
+  min-height: 38px;
+  width: 100%;
+}
+
+.ob-field-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ob-ink-2);
+  font-weight: 650;
+}
+
+.ob-hint {
+  font-size: 11px;
+  color: var(--ob-muted);
+  line-height: 1.5;
+}
+
+.ob-spinner {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--ob-faint);
+  border-right-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: ob-spin 900ms linear infinite;
+}
+
+@keyframes ob-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-spinner {
+    animation: none;
+  }
+}
