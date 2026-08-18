@@ -20,13 +20,18 @@ that drifts out of date beside the code it describes.
 | [0010](0010-staged-fhir-bundle-extraction.md) | Staged FHIR bundle extraction, nullable source metadata, ingestion limits | Accepted |
 | [0011](0011-timeline-temporal-projection-policy.md) | Timeline temporal projection policy: anchors, conservative components, verified group order | Accepted |
 
-## Deferred
+## Numbered in Phase 0, never written up
 
-Recorded in the Phase 0 analysis but not yet written up, because the phase that implements them has
-not started and writing them now would be speculative:
+Two numbers were reserved in the Phase 0 analysis and never became records of their own. The
+numbering gap is kept so Phase 0's numbering still resolves:
 
-- **ADR-0002** — mCODE as a conformance and export boundary, never the ingestion contract (P3)
-- **ADR-0008** — hand-written cited conformance checks rather than a general profile validator (P4)
+- **ADR-0002** — mCODE as a conformance and export boundary, never the ingestion contract. The
+  conformance half is implemented: P3 normalizes without ever treating an mCODE profile as the
+  ingestion contract, and the P4 checks cite mCODE STU4 rather than validating against it. The
+  export half is P7B, a stretch goal V1 does not include.
+- **ADR-0008** — hand-written cited conformance checks rather than a general profile validator.
+  Implemented in P4: each of the six V1 checks names the specification statement it was derived
+  from, and every finding carries that citation.
 
 ## Superseded wording
 

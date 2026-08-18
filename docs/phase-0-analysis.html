@@ -634,7 +634,7 @@
     <h3>The model</h3>
     <ul>
       <li><strong><code>PartialDate</code></strong> — <code>(Value, Precision ∈ {Year, Month, Day, Instant})</code>. Precision is never inferred and never widened.</li>
-      <li><strong>Three-valued comparison</strong> — <code>Compare(a, b) → Before | After | Same | Indeterminate</code>. <code>2019</code> vs <code>2019-03</code> is <code>Indeterminate</code>: March 2019 is inside 2019, so no ordering exists. Returning <code>Before</code> or <code>After</code> there would be a lie the type system can prevent.</li>
+      <li><strong>Partial-order comparison with an explicit indeterminate outcome</strong> — <code>Compare(a, b) → Before | After | Same | Indeterminate</code>. <code>2019</code> vs <code>2019-03</code> is <code>Indeterminate</code>: March 2019 is inside 2019, so no ordering exists. Returning <code>Before</code> or <code>After</code> there would be a lie the type system can prevent.</li>
       <li><strong>Rules consume the four-outcome result honestly.</strong> <code>OB-DOM-001</code> fires only on <code>Before</code>. Indeterminate never produces a finding — it may produce a <code>CoverageNote</code>. This single rule is the clearest evidence in the codebase that the problem was understood rather than papered over.</li>
       <li><strong>Timezones</strong> — preserve offsets when present; never assume server-local. Persist instants as <code>timestamptz</code>, partials as value plus precision tag.</li>
     </ul>
