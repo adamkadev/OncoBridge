@@ -1,0 +1,876 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "OncoBridge API",
+    "description": "Read-only views over imported FHIR R4 Bundles: the byte-exact import evidence, the canonical oncology record derived from it, quality findings and field-level provenance. Findings come from the OncoBridge conformance checks — a subset of mCODE STU4. OncoBridge does not perform full mCODE profile validation.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/imports": {
+      "post": {
+        "tags": [
+          "Imports"
+        ],
+        "summary": "Import a FHIR R4 Bundle",
+        "description": "Preserves the request body byte for byte as import evidence, then normalizes the batch into the canonical oncology tier and assesses its quality. The batch is queryable through the read endpoints as soon as this call returns.",
+        "operationId": "ImportBundle",
+        "parameters": [
+          {
+            "name": "sourceSystemLabel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/fhir+json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}": {
+      "get": {
+        "tags": [
+          "Imports"
+        ],
+        "summary": "Read an import batch with its source resources",
+        "description": "Returns the import metadata and every stored source resource in bundle entry order. contentHash is the SHA-256 of the exact posted bytes; the posted bytes themselves are retained in storage and are not served by this API.",
+        "operationId": "GetImport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}/findings": {
+      "get": {
+        "tags": [
+          "Quality"
+        ],
+        "summary": "Read the quality findings of an import batch",
+        "description": "Returns the findings the OncoBridge conformance checks raised about this batch. An existing batch with nothing to report returns an empty array; findings of any severity are reported inside a successful response.",
+        "operationId": "GetImportFindings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FindingResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/patients/{patientId}/record": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Read the canonical record of a patient",
+        "description": "Returns the canonical patient together with the primary cancer diagnoses, TNM staging assessments and cancer-related surgical procedures derived for them. Variable-precision dates keep the precision the source stated.",
+        "operationId": "GetPatientRecord",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientRecordResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/domain/{domainEntityId}/provenance": {
+      "get": {
+        "tags": [
+          "Provenance"
+        ],
+        "summary": "Read the lineage of a canonical entity",
+        "description": "Returns the lineage records that name this canonical entity: the whole-entity record first, then one record per derived field. Each names the source resource it was read from and the transformation that produced it.",
+        "operationId": "GetDomainProvenance",
+        "parameters": [
+          {
+            "name": "domainEntityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvenanceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CancerStagingResponse": {
+        "required": [
+          "id",
+          "patientId",
+          "primaryCancerDiagnosisId",
+          "categories"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "primaryCancerDiagnosisId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stageGroup": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          },
+          "method": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          },
+          "effective": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageCategoryResponse"
+            }
+          }
+        }
+      },
+      "CancerSurgicalProcedureResponse": {
+        "required": [
+          "id",
+          "patientId",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "$ref": "#/components/schemas/CodedConceptResponse"
+          },
+          "performed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TemporalOccurrenceResponse"
+              }
+            ]
+          },
+          "bodySite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          }
+        }
+      },
+      "CodedConceptResponse": {
+        "required": [
+          "system",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "display": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FindingResponse": {
+        "required": [
+          "checkId",
+          "category",
+          "severity",
+          "message",
+          "target",
+          "citation"
+        ],
+        "type": "object",
+        "properties": {
+          "checkId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/FindingTargetResponse"
+          },
+          "citation": {
+            "type": "string"
+          },
+          "expected": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "actual": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FindingTargetResponse": {
+        "required": [
+          "kind",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domainEntityType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ImportCreatedResponse": {
+        "required": [
+          "importBatchId"
+        ],
+        "type": "object",
+        "properties": {
+          "importBatchId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ImportResponse": {
+        "required": [
+          "importBatchId",
+          "sourceSystemLabel",
+          "receivedAt",
+          "contentHash",
+          "entryCount",
+          "status",
+          "sourceResources"
+        ],
+        "type": "object",
+        "properties": {
+          "importBatchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceSystemLabel": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "bundleType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "entryCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "normalizerVersion": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "normalizedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "sourceResources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceResourceResponse"
+            }
+          }
+        }
+      },
+      "JsonElement": {},
+      "LineageResponse": {
+        "required": [
+          "domainEntityType",
+          "domainEntityId",
+          "sourceResourceId",
+          "transformationName",
+          "transformationVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "domainEntityType": {
+            "type": "string"
+          },
+          "domainEntityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fieldPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceResourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transformationName": {
+            "type": "string"
+          },
+          "transformationVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "PartialDateResponse": {
+        "required": [
+          "value",
+          "precision"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "precision": {
+            "type": "string"
+          }
+        }
+      },
+      "PartialPeriodResponse": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          },
+          "end": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          }
+        }
+      },
+      "PatientRecordResponse": {
+        "required": [
+          "patient",
+          "primaryCancerDiagnoses",
+          "cancerStagings",
+          "cancerSurgicalProcedures"
+        ],
+        "type": "object",
+        "properties": {
+          "patient": {
+            "$ref": "#/components/schemas/PatientResponse"
+          },
+          "primaryCancerDiagnoses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrimaryCancerDiagnosisResponse"
+            }
+          },
+          "cancerStagings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CancerStagingResponse"
+            }
+          },
+          "cancerSurgicalProcedures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CancerSurgicalProcedureResponse"
+            }
+          }
+        }
+      },
+      "PatientResponse": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceIdentifier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "birthDate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          },
+          "sexAtBirthAsRecorded": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          }
+        }
+      },
+      "PrimaryCancerDiagnosisResponse": {
+        "required": [
+          "id",
+          "patientId",
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "$ref": "#/components/schemas/CodedConceptResponse"
+          },
+          "onset": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TemporalOccurrenceResponse"
+              }
+            ]
+          },
+          "bodySite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodedConceptResponse"
+              }
+            ]
+          },
+          "recordedDate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProvenanceResponse": {
+        "required": [
+          "domainEntityId",
+          "records"
+        ],
+        "type": "object",
+        "properties": {
+          "domainEntityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LineageResponse"
+            }
+          }
+        }
+      },
+      "SourceResourceResponse": {
+        "required": [
+          "id",
+          "entryIndex"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entryIndex": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "resourceType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceLogicalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fullUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contentHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resourceJson": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            ]
+          }
+        }
+      },
+      "StageCategoryResponse": {
+        "required": [
+          "axis",
+          "code",
+          "sourceResourceId"
+        ],
+        "type": "object",
+        "properties": {
+          "axis": {
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/CodedConceptResponse"
+          },
+          "sourceResourceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TemporalOccurrenceResponse": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "date": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialDateResponse"
+              }
+            ]
+          },
+          "period": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PartialPeriodResponse"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Imports"
+    },
+    {
+      "name": "Quality"
+    },
+    {
+      "name": "Patients"
+    },
+    {
+      "name": "Provenance"
+    }
+  ]
+}
