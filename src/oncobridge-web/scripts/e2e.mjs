@@ -163,6 +163,9 @@ try {
 
   await waitFor('PostgreSQL', async () => postgresReady(), 60);
 
+  console.log('[harness] restoring the repository-local dotnet tools');
+  run('dotnet', ['tool', 'restore'], { cwd: repoRoot });
+
   console.log('[harness] applying EF migrations');
   run(
     'dotnet',
