@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using OncoBridge.Interop.Fhir.Ingestion;
 
 namespace OncoBridge.Api.Tests.Hosting;
 
 internal sealed class OncoBridgeApiFactory(
-    string connectionString, string environment = OncoBridgeApiFactory.Development)
+    string connectionString,
+    string environment = OncoBridgeApiFactory.Development,
+    BundleIngestionOptions? ingestionOptions = null)
     : WebApplicationFactory<Program>
 {
     internal const string Development = "Development";
@@ -25,5 +30,13 @@ internal sealed class OncoBridgeApiFactory(
         builder.UseEnvironment(environment);
         builder.ConfigureAppConfiguration(configuration => configuration.AddInMemoryCollection(
             new Dictionary<string, string?> { [ConnectionStringKey] = connectionString }));
+
+        if (ingestionOptions is null)
+        {
+            return;
+        }
+
+        builder.ConfigureServices(services => services.Replace(
+            ServiceDescriptor.Singleton(ingestionOptions)));
     }
 }

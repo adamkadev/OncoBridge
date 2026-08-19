@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OncoBridge.Application.Imports;
 using OncoBridge.Domain.Provenance;
 
 namespace OncoBridge.Infrastructure.Persistence.Configurations;
@@ -19,7 +20,7 @@ internal sealed class ImportBatchConfiguration : IEntityTypeConfiguration<Import
 
         builder.Property(batch => batch.SourceSystemLabel)
             .HasColumnName("source_system_label")
-            .HasMaxLength(200)
+            .HasMaxLength(ImportMetadataLimits.SourceSystemLabelMaxLength)
             .IsRequired();
 
         builder.Property(batch => batch.ReceivedAt)
@@ -42,7 +43,7 @@ internal sealed class ImportBatchConfiguration : IEntityTypeConfiguration<Import
 
         builder.Property(batch => batch.FileName)
             .HasColumnName("file_name")
-            .HasMaxLength(500);
+            .HasMaxLength(ImportMetadataLimits.FileNameMaxLength);
 
         builder.Property(batch => batch.BundleType)
             .HasColumnName("bundle_type")

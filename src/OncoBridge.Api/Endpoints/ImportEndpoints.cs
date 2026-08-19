@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net.Mime;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,10 @@ internal static class ImportEndpoints
 
     private const string JsonStructuredSyntaxSuffix = "json";
 
+    private const int BodyChunkBytes = 64 * 1024;
+
+    private const string InvalidMetadataTitle = "Invalid import metadata";
+
     internal static RouteGroupBuilder MapImportEndpoints(this RouteGroupBuilder group)
     {
         group.MapPost("/imports", ImportAsync)
@@ -42,6 +47,7 @@ internal static class ImportEndpoints
                 ImportEndpointDefaults.FhirJsonMediaType, MediaTypeNames.Application.Json)
             .Produces<ImportCreatedResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status413PayloadTooLarge)
             .ProducesProblem(StatusCodes.Status415UnsupportedMediaType);
 
         group.MapGet("/imports/{id:guid}", GetImportAsync)
@@ -72,6 +78,7 @@ internal static class ImportEndpoints
     private static async Task<IResult> ImportAsync(
         HttpRequest request,
         [FromServices] ImportPayload importPayload,
+        [FromServices] BundleIngestionOptions ingestionOptions,
         string? sourceSystemLabel,
         string? fileName,
         CancellationToken cancellationToken)
@@ -86,16 +93,24 @@ internal static class ImportEndpoints
                 statusCode: StatusCodes.Status415UnsupportedMediaType);
         }
 
-        if (sourceSystemLabel is not null && string.IsNullOrWhiteSpace(sourceSystemLabel))
+        if (MetadataRejection(sourceSystemLabel, fileName) is IResult rejected)
         {
-            return TypedResults.Problem(
-                title: "Invalid import metadata",
-                detail: "sourceSystemLabel was supplied but is blank. Omit it to record the default "
-                    + $"label '{ImportEndpointDefaults.SourceSystemLabel}', or state a real label.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return rejected;
         }
 
-        byte[] payload = await ReadPayloadAsync(request, cancellationToken);
+        int maxPayloadBytes = ingestionOptions.MaxPayloadBytes;
+
+        if (request.ContentLength > maxPayloadBytes)
+        {
+            return PayloadTooLarge(maxPayloadBytes);
+        }
+
+        byte[]? payload = await ReadPayloadAsync(request, maxPayloadBytes, cancellationToken);
+
+        if (payload is null)
+        {
+            return PayloadTooLarge(maxPayloadBytes);
+        }
 
         try
         {
@@ -140,14 +155,76 @@ internal static class ImportEndpoints
                 [.. findings.Select(QualityMapping.ToResponse)]);
     }
 
-    private static async Task<byte[]> ReadPayloadAsync(
-        HttpRequest request, CancellationToken cancellationToken)
+    private static IResult? MetadataRejection(string? sourceSystemLabel, string? fileName)
     {
-        using MemoryStream buffer = new();
+        if (sourceSystemLabel is not null && string.IsNullOrWhiteSpace(sourceSystemLabel))
+        {
+            return TypedResults.Problem(
+                title: InvalidMetadataTitle,
+                detail: "sourceSystemLabel was supplied but is blank. Omit it to record the default "
+                    + $"label '{ImportEndpointDefaults.SourceSystemLabel}', or state a real label.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
 
-        await request.Body.CopyToAsync(buffer, cancellationToken);
+        if (sourceSystemLabel is not null
+            && sourceSystemLabel.Length > ImportMetadataLimits.SourceSystemLabelMaxLength)
+        {
+            return TooLongMetadata(
+                "sourceSystemLabel",
+                sourceSystemLabel.Length,
+                ImportMetadataLimits.SourceSystemLabelMaxLength);
+        }
 
-        return buffer.ToArray();
+        if (fileName is not null && fileName.Length > ImportMetadataLimits.FileNameMaxLength)
+        {
+            return TooLongMetadata(
+                "fileName", fileName.Length, ImportMetadataLimits.FileNameMaxLength);
+        }
+
+        return null;
+    }
+
+    private static IResult TooLongMetadata(string parameter, int length, int maxLength) =>
+        TypedResults.Problem(
+            title: InvalidMetadataTitle,
+            detail: $"{parameter} is {length} characters, exceeding the {maxLength} character limit "
+                + "this API records.",
+            statusCode: StatusCodes.Status400BadRequest);
+
+    private static IResult PayloadTooLarge(int maxPayloadBytes) =>
+        TypedResults.Problem(
+            title: "Payload too large",
+            detail: $"The request body exceeds the {maxPayloadBytes} byte import limit and was not "
+                + "read into memory.",
+            statusCode: StatusCodes.Status413PayloadTooLarge);
+
+    private static async Task<byte[]?> ReadPayloadAsync(
+        HttpRequest request, int maxPayloadBytes, CancellationToken cancellationToken)
+    {
+        byte[] chunk = ArrayPool<byte>.Shared.Rent(BodyChunkBytes);
+
+        try
+        {
+            using MemoryStream buffer = new();
+
+            int read;
+
+            while ((read = await request.Body.ReadAsync(chunk, cancellationToken)) > 0)
+            {
+                if (buffer.Length + read > maxPayloadBytes)
+                {
+                    return null;
+                }
+
+                buffer.Write(chunk, 0, read);
+            }
+
+            return buffer.ToArray();
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(chunk);
+        }
     }
 
     private static bool IsJsonMediaType(string? contentType) =>

@@ -66,6 +66,16 @@
               }
             }
           },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "415": {
             "description": "Unsupported Media Type",
             "content": {

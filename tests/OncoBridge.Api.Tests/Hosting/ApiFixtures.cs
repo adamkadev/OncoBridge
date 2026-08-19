@@ -41,6 +41,16 @@ internal static class ApiFixtures
         return client.PostAsync(query is null ? ImportsRoute : $"{ImportsRoute}?{query}", content);
     }
 
+    internal static Task<HttpResponseMessage> PostBundleWithForgedContentLengthAsync(
+        HttpClient client, byte[] payload, long forgedContentLength)
+    {
+        StreamContent content = new(new UnknownLengthStream(payload));
+        content.Headers.ContentType = new MediaTypeHeaderValue(FhirJsonMediaType);
+        content.Headers.ContentLength = forgedContentLength;
+
+        return client.PostAsync(ImportsRoute, content);
+    }
+
     internal static async Task<JsonElement> ReadJsonAsync(HttpResponseMessage response)
     {
         using JsonDocument document =
@@ -79,5 +89,46 @@ internal static class ApiFixtures
 
         return Path.GetFullPath(
             value ?? throw new InvalidOperationException("RepoRoot is not configured."));
+    }
+}
+
+internal sealed class UnknownLengthStream(byte[] payload) : Stream
+{
+    private readonly MemoryStream _inner = new(payload, writable: false);
+
+    public override bool CanRead => true;
+
+    public override bool CanSeek => false;
+
+    public override bool CanWrite => false;
+
+    public override long Length => throw new NotSupportedException();
+
+    public override long Position
+    {
+        get => throw new NotSupportedException();
+        set => throw new NotSupportedException();
+    }
+
+    public override int Read(byte[] buffer, int offset, int count) =>
+        _inner.Read(buffer, offset, count);
+
+    public override void Flush() => _inner.Flush();
+
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+    public override void SetLength(long value) => throw new NotSupportedException();
+
+    public override void Write(byte[] buffer, int offset, int count) =>
+        throw new NotSupportedException();
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _inner.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 }

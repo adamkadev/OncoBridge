@@ -22,6 +22,9 @@ builder.Services.AddDbContext<OncoBridgeDbContext>((provider, options) =>
 
 builder.Services.AddSingleton(TimeProvider.System);
 
+builder.Services.AddSingleton(BundleIngestionOptions.Default);
+builder.Services.AddSingleton<FhirBundleExtractor>();
+
 builder.Services.AddScoped<IImportPayloadIngestor, FhirBundleIngestor>();
 builder.Services.AddScoped<ICanonicalNormalizer, FhirNormalizer>();
 builder.Services.AddScoped<ISourceQualityEvaluator, FhirSourceQualityEvaluator>();

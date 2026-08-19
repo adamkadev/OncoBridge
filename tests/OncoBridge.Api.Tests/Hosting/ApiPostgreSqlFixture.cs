@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OncoBridge.Infrastructure.Persistence;
+using OncoBridge.Interop.Fhir.Ingestion;
 using Testcontainers.PostgreSql;
 
 namespace OncoBridge.Api.Tests.Hosting;
@@ -17,22 +18,39 @@ public sealed class ApiPostgreSqlFixture : IAsyncLifetime
 
     private OncoBridgeApiFactory? _factory;
 
+    private OncoBridgeApiFactory? _boundedFactory;
+
+    internal const int BoundedMaxPayloadBytes = 512;
+
     internal HttpClient Client { get; private set; } = null!;
+
+    internal HttpClient BoundedClient { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
 
         _factory = new OncoBridgeApiFactory(_container.GetConnectionString());
+        _boundedFactory = new OncoBridgeApiFactory(
+            _container.GetConnectionString(),
+            OncoBridgeApiFactory.Development,
+            new BundleIngestionOptions { MaxPayloadBytes = BoundedMaxPayloadBytes });
 
         await MigrateAsync(_factory);
 
         Client = _factory.CreateClient();
+        BoundedClient = _boundedFactory.CreateClient();
     }
 
     public async Task DisposeAsync()
     {
         Client?.Dispose();
+        BoundedClient?.Dispose();
+
+        if (_boundedFactory is not null)
+        {
+            await _boundedFactory.DisposeAsync();
+        }
 
         if (_factory is not null)
         {
@@ -40,6 +58,14 @@ public sealed class ApiPostgreSqlFixture : IAsyncLifetime
         }
 
         await _container.DisposeAsync();
+    }
+
+    internal async Task<int> CountImportBatchesAsync()
+    {
+        using IServiceScope scope = _factory!.Services.CreateScope();
+
+        return await scope.ServiceProvider.GetRequiredService<OncoBridgeDbContext>()
+            .ImportBatches.CountAsync();
     }
 
     private static async Task MigrateAsync(OncoBridgeApiFactory factory)

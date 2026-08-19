@@ -1,5 +1,7 @@
+using System.Net;
 using System.Text.Json;
 using OncoBridge.Api.Tests.Hosting;
+using OncoBridge.Application.Imports;
 
 namespace OncoBridge.Api.Tests.Imports;
 
@@ -82,6 +84,87 @@ public sealed class ImportMetadataTests(ApiPostgreSqlFixture fixture)
 
         Assert.Equal(JsonValueKind.Object, resourceJson.ValueKind);
         Assert.Equal("Patient", resourceJson.GetProperty("resourceType").GetString());
+    }
+
+    [Theory]
+    [InlineData(ImportMetadataLimits.SourceSystemLabelMaxLength - 1)]
+    [InlineData(ImportMetadataLimits.SourceSystemLabelMaxLength)]
+    public async Task A_source_system_label_within_the_recorded_length_is_accepted(int length)
+    {
+        string label = Repeat('a', length);
+
+        JsonElement import = await ImportAndReadAsync($"sourceSystemLabel={label}");
+
+        Assert.Equal(label, import.GetProperty("sourceSystemLabel").GetString());
+    }
+
+    [Fact]
+    public async Task A_source_system_label_longer_than_the_recorded_length_is_refused()
+    {
+        int length = ImportMetadataLimits.SourceSystemLabelMaxLength + 1;
+
+        await AssertMetadataRefusedAsync(
+            $"sourceSystemLabel={Repeat('a', length)}",
+            $"sourceSystemLabel is {length} characters, exceeding the "
+                + $"{ImportMetadataLimits.SourceSystemLabelMaxLength} character limit this API records.");
+    }
+
+    [Theory]
+    [InlineData(ImportMetadataLimits.FileNameMaxLength - 1)]
+    [InlineData(ImportMetadataLimits.FileNameMaxLength)]
+    public async Task A_file_name_within_the_recorded_length_is_accepted(int length)
+    {
+        string fileName = Repeat('b', length);
+
+        JsonElement import = await ImportAndReadAsync($"fileName={fileName}");
+
+        Assert.Equal(fileName, import.GetProperty("fileName").GetString());
+    }
+
+    [Fact]
+    public async Task A_file_name_longer_than_the_recorded_length_is_refused()
+    {
+        int length = ImportMetadataLimits.FileNameMaxLength + 1;
+
+        await AssertMetadataRefusedAsync(
+            $"fileName={Repeat('b', length)}",
+            $"fileName is {length} characters, exceeding the "
+                + $"{ImportMetadataLimits.FileNameMaxLength} character limit this API records.");
+    }
+
+    [Fact]
+    public async Task Metadata_refused_for_its_length_persists_no_import_batch()
+    {
+        int before = await fixture.CountImportBatchesAsync();
+
+        using HttpResponseMessage label = await ApiFixtures.PostBundleAsync(
+            fixture.Client,
+            ApiFixtures.AcceptanceBundleBytes,
+            $"sourceSystemLabel={Repeat('a', ImportMetadataLimits.SourceSystemLabelMaxLength + 1)}");
+        using HttpResponseMessage fileName = await ApiFixtures.PostBundleAsync(
+            fixture.Client,
+            ApiFixtures.AcceptanceBundleBytes,
+            $"fileName={Repeat('b', ImportMetadataLimits.FileNameMaxLength + 1)}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, label.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, fileName.StatusCode);
+        Assert.Equal(before, await fixture.CountImportBatchesAsync());
+    }
+
+    private static string Repeat(char character, int length) => new(character, length);
+
+    private async Task AssertMetadataRefusedAsync(string query, string expectedDetail)
+    {
+        using HttpResponseMessage response = await ApiFixtures.PostBundleAsync(
+            fixture.Client, ApiFixtures.AcceptanceBundleBytes, query);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        JsonElement problem = await ApiFixtures.ReadJsonAsync(response);
+
+        Assert.Equal("Invalid import metadata", problem.GetProperty("title").GetString());
+        Assert.Equal(expectedDetail, problem.GetProperty("detail").GetString());
     }
 
     private async Task<JsonElement> ImportAndReadAsync(string? query)
