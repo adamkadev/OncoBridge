@@ -166,6 +166,9 @@ try {
   console.log('[harness] restoring the repository-local dotnet tools');
   run('dotnet', ['tool', 'restore'], { cwd: repoRoot });
 
+  console.log('[harness] restoring backend dependencies');
+  run('dotnet', ['restore', 'src/OncoBridge.Api/OncoBridge.Api.csproj'], { cwd: repoRoot });
+
   console.log('[harness] applying EF migrations');
   run(
     'dotnet',
