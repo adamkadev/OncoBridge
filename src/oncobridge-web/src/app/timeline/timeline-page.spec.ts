@@ -197,6 +197,60 @@ describe('TimelinePage', () => {
       });
     });
 
+    it('keeps a valid requested patient and corrects nothing', async () => {
+      await start({ patientId: secondPatientId });
+      await flushImport({
+        import: importResponse({ patientIds: [entityIds.patient, secondPatientId] }),
+      });
+      await flushTimeline({ patientId: secondPatientId });
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('rewrites an invalid requested patient to the patient it actually shows', async () => {
+      await start({ patientId: 'not-a-canonical-patient' });
+      await flushImport();
+      await flushTimeline();
+
+      expect(navigate).toHaveBeenCalledExactlyOnceWith([], {
+        queryParams: { patientId: entityIds.patient },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
+    it('replaces the invalid URL rather than pushing a second history entry', async () => {
+      await start({ patientId: 'not-a-canonical-patient' });
+      await flushImport();
+      await flushTimeline();
+
+      expect(navigate.mock.calls[0][1]).toMatchObject({ replaceUrl: true });
+    });
+
+    it('settles after one correction when the corrected patient arrives as input', async () => {
+      await start({ patientId: 'not-a-canonical-patient' });
+      await flushImport();
+      await flushTimeline();
+
+      fixture.componentRef.setInput('patientId', entityIds.patient);
+      await settle();
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('corrects nothing when no patient is requested', async () => {
+      await golden();
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('corrects nothing when the import produced no canonical patient', async () => {
+      await start({ patientId: 'not-a-canonical-patient' });
+      await flushImport({ import: importResponse({ patientIds: [] }) });
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
     it('states that no canonical patient was produced rather than inventing one', async () => {
       await start();
       await flushImport({ import: importResponse({ patientIds: [] }) });

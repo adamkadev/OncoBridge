@@ -504,6 +504,19 @@ export class TimelinePage {
     effect(() => this.data.loadImport(this.importBatchId()));
 
     effect(() => {
+      const requested = this.patientId();
+      const selected = this.selectedPatientId();
+
+      if (requested && selected && requested !== selected) {
+        void this.router.navigate([], {
+          queryParams: { patientId: selected },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
+    });
+
+    effect(() => {
       const patientId = this.selectedPatientId();
 
       if (patientId) {

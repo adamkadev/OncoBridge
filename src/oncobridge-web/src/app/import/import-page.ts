@@ -1,9 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ApiFailure, toApiFailure } from '../core/async';
 import { RawImportClient, fhirJsonMediaType } from '../core/raw-import-client';
 import { StandardsNote } from '../shared/standards-note';
+
+const SOURCE_SYSTEM_LABEL_MAX_LENGTH = 200;
+const FILE_NAME_MAX_LENGTH = 500;
 
 @Component({
   selector: 'ob-import-page',
@@ -44,12 +55,20 @@ import { StandardsNote } from '../shared/standards-note';
             }
 
             <input
+              #bundleFile
               id="bundle-file"
               type="file"
               accept="application/fhir+json,application/json,.json"
               [disabled]="busy()"
               (change)="choose($event)"
             />
+
+            @if (fileNameTooLong()) {
+              <p class="ob-hint too-long" role="alert">
+                The file name is {{ file()?.name.length }} characters; the API records at most
+                {{ fileNameMaxLength }}. Rename the file before importing.
+              </p>
+            }
             <p class="ob-hint">
               The file is posted verbatim as {{ mediaType }}; nothing is rewritten in the browser.
             </p>
@@ -64,6 +83,7 @@ import { StandardsNote } from '../shared/standards-note';
               class="ob-input"
               type="text"
               placeholder="api"
+              [attr.maxlength]="sourceSystemLabelMaxLength"
               [value]="sourceSystemLabel()"
               [disabled]="busy()"
               (input)="setLabel($event)"
@@ -95,7 +115,7 @@ import { StandardsNote } from '../shared/standards-note';
           }
 
           <div class="actions">
-            <button type="submit" class="ob-button" [disabled]="!file() || busy()">
+            <button type="submit" class="ob-button" [disabled]="!canSubmit()">
               @if (busy()) {
                 <span class="ob-spinner light" aria-hidden="true"></span>
                 Importing…
@@ -107,6 +127,9 @@ import { StandardsNote } from '../shared/standards-note';
               @if (busy()) {
                 Preserving bytes, normalizing, assessing quality. No progress estimate is available
                 — the API returns when the batch is queryable.
+              } @else if (fileNameTooLong()) {
+                The API is authoritative about what it records; this file name is refused before it
+                is posted.
               } @else if (file()) {
                 Normalization and quality assessment run within this request; the inspector opens
                 when it returns.
@@ -262,6 +285,10 @@ import { StandardsNote } from '../shared/standards-note';
       border-radius: 2px;
     }
 
+    .too-long {
+      color: var(--ob-error-ink);
+    }
+
     .failure {
       display: flex;
       border: 1px solid color-mix(in oklab, var(--ob-error) 35%, transparent);
@@ -372,14 +399,26 @@ export class ImportPage {
   private readonly client = inject(RawImportClient);
   private readonly router = inject(Router);
 
+  private readonly bundleFile = viewChild.required<ElementRef<HTMLInputElement>>('bundleFile');
+
   protected readonly mediaType = fhirJsonMediaType;
+  protected readonly sourceSystemLabelMaxLength = SOURCE_SYSTEM_LABEL_MAX_LENGTH;
+  protected readonly fileNameMaxLength = FILE_NAME_MAX_LENGTH;
 
   protected readonly file = signal<File | null>(null);
   protected readonly sourceSystemLabel = signal('');
   protected readonly busy = signal(false);
   protected readonly failure = signal<ApiFailure | null>(null);
 
-  protected readonly canSubmit = computed(() => this.file() !== null && !this.busy());
+  protected readonly fileNameTooLong = computed(() => {
+    const file = this.file();
+
+    return file !== null && file.name.length > FILE_NAME_MAX_LENGTH;
+  });
+
+  protected readonly canSubmit = computed(
+    () => this.file() !== null && !this.busy() && !this.fileNameTooLong(),
+  );
 
   protected choose(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -389,6 +428,7 @@ export class ImportPage {
   }
 
   protected clear(): void {
+    this.bundleFile().nativeElement.value = '';
     this.file.set(null);
     this.failure.set(null);
   }
@@ -402,7 +442,7 @@ export class ImportPage {
 
     const file = this.file();
 
-    if (!file || this.busy()) {
+    if (!file || !this.canSubmit()) {
       return;
     }
 
